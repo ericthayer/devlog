@@ -8,6 +8,7 @@ import { UploadView } from './components/UploadView';
 import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
+import { ProcessingModal } from './components/ProcessingModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
@@ -18,9 +19,21 @@ const App: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
-  const [isThinkingEnabled, setIsThinkingEnabled] = useState(true);
+  const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
+  
+  // Progress Tracking
+  const [processingStep, setProcessingStep] = useState<'analyzing' | 'generating' | 'finalizing'>('analyzing');
+  const [processingProgress, setProcessingProgress] = useState(0);
   
   const cancelRef = useRef(false);
+
+  // Auto-minimize logic
+  useEffect(() => {
+    if (isUploading && !isMinimized) {
+      const timer = setTimeout(() => setIsMinimized(true), 0); // Auto-minimize after 4s
+      return () => clearTimeout(timer);
+    }
+  }, [isUploading, isMinimized]);
 
   useEffect(() => {
     const saved = localStorage.getItem('devsigner_data_v3');
@@ -44,6 +57,8 @@ const App: React.FC = () => {
 
     setIsUploading(true);
     setIsMinimized(false);
+    setProcessingStep('analyzing');
+    setProcessingProgress(0);
     cancelRef.current = false;
     
     const newAssets: Asset[] = [];
@@ -71,6 +86,7 @@ const App: React.FC = () => {
           size: file.size
         };
         newAssets.push(asset);
+        setProcessingProgress(((i + 1) / files.length) * 100);
       } catch (err) {
         console.error("Analysis failed for", file.name, err);
       }
@@ -88,12 +104,23 @@ const App: React.FC = () => {
     if (assets.length === 0) return;
     setIsUploading(true);
     setIsMinimized(false);
+    setProcessingStep('generating');
+    setProcessingProgress(10);
     cancelRef.current = false;
 
     try {
+      // Simulate progress while generating
+      const progressTimer = setInterval(() => {
+        setProcessingProgress(prev => Math.min(prev + 2, 75));
+      }, 500);
+
       const newStudy = await generateCaseStudy(assets.slice(-3), "Synthesize recent progress into a technical log.", isThinkingEnabled);
-      
+      clearInterval(progressTimer);
+
       if (cancelRef.current) return;
+
+      setProcessingStep('finalizing');
+      setProcessingProgress(90);
 
       const fullStudy: CaseStudy = {
         id: Math.random().toString(36).substr(2, 9),
@@ -109,15 +136,18 @@ const App: React.FC = () => {
         seoMetadata: newStudy.seoMetadata || { title: '', description: '', keywords: [] }
       };
 
-      setCaseStudies(prev => [fullStudy, ...prev]);
-      setAssets([]);
-      setSelectedArticle(fullStudy);
-      setView('article');
+      setProcessingProgress(100);
+      setTimeout(() => {
+        setCaseStudies(prev => [fullStudy, ...prev]);
+        setAssets([]);
+        setSelectedArticle(fullStudy);
+        setView('article');
+        setIsUploading(false);
+        setIsMinimized(false);
+      }, 500);
     } catch (err) {
       console.error("Case study generation failed", err);
-    } finally {
       setIsUploading(false);
-      setIsMinimized(false);
     }
   };
 
@@ -186,15 +216,19 @@ const App: React.FC = () => {
         )}
       </main>
 
+      {/* Background Status Indicator (Sticky HUD) */}
       <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
         {isUploading && isMinimized && (
           <div className="bg-[#FFF500] brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in slide-in-from-right-full">
             <div className="bg-black p-2">
               <Icon name="Cpu" size={20} className="text-[#FFF500] animate-spin" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-[140px]">
               <span className="text-xs font-black uppercase italic">AI Processing...</span>
-              <div className="flex gap-2 mt-1">
+              <div className="w-full h-1 bg-black/10 mt-1 mb-1">
+                <div className="h-full bg-black transition-all" style={{ width: `${processingProgress}%` }} />
+              </div>
+              <div className="flex gap-2">
                 <button onClick={() => setIsMinimized(false)} className="mono text-[9px] font-bold uppercase underline hover:no-underline">Expand</button>
                 <span className="text-gray-400">/</span>
                 <button onClick={cancelWorkflow} className="mono text-[9px] font-bold uppercase underline hover:no-underline text-red-600">Cancel</button>
@@ -207,37 +241,16 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {isUploading && !isMinimized && (
-        <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-8 backdrop-blur-md">
-            <div className="bg-[#FFF500] brutalist-border p-12 md:p-20 brutalist-shadow text-center max-w-lg relative">
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button onClick={() => setIsMinimized(true)} className="p-2 bg-black text-white hover:bg-zinc-800 transition-colors brutalist-border"><Icon name="Minimize2" size={18} /></button>
-                  <button onClick={cancelWorkflow} className="p-2 bg-red-600 text-white hover:bg-red-700 transition-colors brutalist-border"><Icon name="X" size={18} /></button>
-                </div>
-                <div className="relative inline-block mb-10">
-                  <Icon name="Cpu" size={80} className="animate-spin text-black" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-4 h-4 bg-black animate-ping" />
-                  </div>
-                </div>
-                <div className="mb-4 space-y-1">
-                  <h3 className="text-4xl font-black uppercase italic leading-tight">
-                    {isThinkingEnabled ? 'Deep Intelligence Engaged...' : 'Gemini Thinking...'}
-                  </h3>
-                  <div className="mono text-[10px] font-bold tracking-widest opacity-60 uppercase">
-                    SYSTEM_MODE: {isThinkingEnabled ? 'GEMINI_3_PRO_MAX_REASONING' : 'STANDARD_SYNTHESIS'}
-                  </div>
-                </div>
-                <div className="space-y-2 mono text-xs font-bold uppercase tracking-widest opacity-70 mt-8 text-left max-w-xs mx-auto">
-                  <p className="flex items-center gap-2"><span className="w-2 h-2 bg-black rounded-full animate-pulse" />Parsing raw artifact data</p>
-                  <p className="flex items-center gap-2"><span className="w-2 h-2 bg-black rounded-full animate-pulse delay-75" />Synthesizing technical narrative</p>
-                  {isThinkingEnabled && <p className="flex items-center gap-2"><span className="w-2 h-2 bg-black rounded-full animate-pulse delay-100" />Deep reasoning budget active</p>}
-                </div>
-                <div className="mt-12 pt-8 border-t-2 border-black/10">
-                  <button onClick={() => setIsMinimized(true)} className="mono text-xs font-black uppercase underline hover:no-underline">Continue working in background</button>
-                </div>
-            </div>
-        </div>
+      {/* AI Processing Modal Component */}
+      {isUploading && (
+        <ProcessingModal 
+          isMinimized={isMinimized}
+          isThinkingEnabled={isThinkingEnabled}
+          step={processingStep}
+          progress={processingProgress}
+          onMinimize={setIsMinimized}
+          onCancel={cancelWorkflow}
+        />
       )}
     </div>
   );
