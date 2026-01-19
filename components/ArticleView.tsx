@@ -48,7 +48,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit 
             ))}
           </div>
           
-          <h1 className="text-5xl md:text-8xl font-black leading-[0.85] tracking-tighter uppercase mb-12 italic break-words">
+          <h1 className="text-4xl md:text-7xl lg:text-8xl font-black leading-tight tracking-tight uppercase mb-12 italic break-words">
             {study.title}
           </h1>
 
@@ -87,8 +87,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit 
               </h2>
               <div className="bg-zinc-50 brutalist-border p-8 md:p-12 border-l-[16px] border-l-black relative">
                 <Icon name="Quote" size={40} className="absolute -top-6 -right-4 text-black/5" />
-                <p className="text-2xl md:text-3xl leading-snug font-bold text-zinc-900 uppercase italic">
-                  "{study.problem}"
+                <p className="text-xl md:text-2xl leading-relaxed font-bold text-zinc-900">
+                  {study.problem}
                 </p>
               </div>
             </section>
@@ -100,7 +100,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit 
                 Strategy_Execution
               </h2>
               <div className="max-w-prose">
-                <p className="text-xl md:text-2xl leading-relaxed text-zinc-700 font-medium">
+                <p className="text-xl leading-relaxed text-zinc-700">
                   {study.approach}
                 </p>
               </div>
@@ -110,8 +110,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit 
             <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
               <div className="bg-black text-white p-10 md:p-16 brutalist-shadow-active border-4 border-black relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFF500] -translate-y-1/2 translate-x-1/2 rotate-45" />
-                <h2 className="text-4xl md:text-6xl font-black uppercase mb-8 italic text-[#FFF500] relative z-10">Measured_Outcome</h2>
-                <p className="text-2xl md:text-4xl leading-tight font-black uppercase italic text-white/90 relative z-10">
+                <h2 className="text-4xl md:text-5xl font-black uppercase mb-8 italic text-[#FFF500] relative z-10">Outcome</h2>
+                <p className="text-lg md:text-2xl leading-relaxed font-bold text-white/90 relative z-10">
                   {study.outcome}
                 </p>
               </div>
@@ -124,7 +124,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit 
                 Roadmap_Alpha
               </h2>
               <div className="bg-[#FFF500]/5 brutalist-border p-8 border-dashed">
-                <p className="text-xl md:text-2xl leading-relaxed text-zinc-600 italic font-black">
+                <p className="text-xl leading-relaxed text-zinc-600">
                   {study.nextSteps}
                 </p>
               </div>

@@ -17,6 +17,7 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
       parts: [
         { inlineData: { data: base64Data, mimeType } },
         { text: `Analyze this file and extract its properties for a professional naming convention: [topic]-[type]-[context]-[variant]-[version]. 
+                 Return standard text strings for each field. DO NOT use artificial spacing between characters.
                  Return as JSON with keys: topic, type, context, variant, version.` }
       ]
     },
@@ -55,13 +56,16 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     And this user context: "${contextPrompt}"
     
     Create a professional UX/FE mini-case study. 
+    IMPORTANT: Return standard, human-readable text. DO NOT add spaces between every letter (e.g., return "User Account" not "U S E R  A C C O U N T").
+    
     Format:
-    - Problem: What was the challenge?
-    - Approach: How did you solve it?
-    - Outcome: What were the results?
-    - Next: Future steps.
-    - SEO: meta title, meta description, 5 keywords.
-    - Tags: 3 relevant tags.
+    - title: Clear, descriptive title.
+    - problem: Concise challenge statement.
+    - approach: Technical methodology.
+    - outcome: Results achieved.
+    - nextSteps: Future roadmap.
+    - seoMetadata: { title, description, keywords[] }
+    - tags: 3 string tags.
     
     Return as a structured JSON object.`,
     config: {
