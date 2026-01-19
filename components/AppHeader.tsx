@@ -1,0 +1,67 @@
+
+import React from 'react';
+import { Icon } from './Icon';
+import { BrutalistButton } from './BrutalistButton';
+import { AppView } from '../types';
+
+interface AppHeaderProps {
+  activeView: AppView;
+  isUploadOpen: boolean;
+  onToggleUpload: () => void;
+  onBack?: () => void;
+}
+
+export const AppHeader: React.FC<AppHeaderProps> = ({ 
+  activeView, 
+  isUploadOpen, 
+  onToggleUpload,
+  onBack 
+}) => {
+  const getViewTitle = () => {
+    switch (activeView) {
+      case 'timeline': return 'Contributions';
+      case 'article': return 'Contribution_Detail';
+      case 'editor': return 'Editor_Core';
+      case 'settings': return 'Global_Matrix';
+      default: return 'System_Node';
+    }
+  };
+
+  return (
+    <header className="sticky top-0 bg-white border-b-4 border-black p-4 md:p-6 z-40 flex justify-between items-center">
+      <div className="flex items-center gap-6">
+        {onBack && (
+          <button 
+            onClick={onBack} 
+            className="flex items-center gap-2 font-black uppercase hover:translate-x-[-4px] transition-transform group"
+          >
+            <div className="bg-black text-white p-2 group-hover:bg-[#FFF500] group-hover:text-black transition-colors brutalist-border">
+              <Icon name="ArrowLeft" size={18} />
+            </div>
+          </button>
+        )}
+        <div>
+          <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">
+            {getViewTitle()}
+          </h2>
+          <div className="flex gap-2 mt-1">
+            <span className="mono text-[8px] font-bold bg-black text-[#FFF500] px-1.5 py-0.5 uppercase tracking-widest">
+              SECURE_LINK: {activeView.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <BrutalistButton 
+          variant={isUploadOpen ? 'primary' : 'secondary'} 
+          onClick={onToggleUpload} 
+          className={`text-sm py-2 px-6 transition-colors ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
+        >
+          <Icon name={isUploadOpen ? 'X' : 'Zap'} size={18} />
+          <span className="hidden sm:inline">{isUploadOpen ? 'CLOSE_SYSTEM' : 'NEW_LOG'}</span>
+        </BrutalistButton>
+      </div>
+    </header>
+  );
+};

@@ -2,13 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView, CaseStudy, Asset } from './types';
 import { Navigation } from './components/Navigation';
-import { Icon } from './components/Icon';
+import { AppHeader } from './components/AppHeader';
+import { Drawer } from './components/Drawer';
 import { TimelineView } from './components/TimelineView';
 import { UploadView } from './components/UploadView';
 import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
 import { ProcessingModal } from './components/ProcessingModal';
+// Fixed: Added missing Icon import
+import { Icon } from './components/Icon';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
@@ -18,19 +21,18 @@ const App: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   
-  // Progress Tracking
   const [processingStep, setProcessingStep] = useState<'analyzing' | 'generating' | 'finalizing'>('analyzing');
   const [processingProgress, setProcessingProgress] = useState(0);
   
   const cancelRef = useRef(false);
 
-  // Auto-minimize logic
   useEffect(() => {
     if (isUploading && !isMinimized) {
-      const timer = setTimeout(() => setIsMinimized(true), 0); // Auto-minimize after 4s
+      const timer = setTimeout(() => setIsMinimized(true), 0);
       return () => clearTimeout(timer);
     }
   }, [isUploading, isMinimized]);
@@ -97,7 +99,7 @@ const App: React.FC = () => {
     }
     
     setIsUploading(false);
-    setIsMinimized(false);
+    setIsMinimized(true);
   };
 
   const createStudyFromAssets = async () => {
@@ -109,7 +111,6 @@ const App: React.FC = () => {
     cancelRef.current = false;
 
     try {
-      // Simulate progress while generating
       const progressTimer = setInterval(() => {
         setProcessingProgress(prev => Math.min(prev + 2, 75));
       }, 500);
@@ -144,6 +145,7 @@ const App: React.FC = () => {
         setView('article');
         setIsUploading(false);
         setIsMinimized(false);
+        setIsUploadOpen(false);
       }, 500);
     } catch (err) {
       console.error("Case study generation failed", err);
@@ -157,11 +159,6 @@ const App: React.FC = () => {
     setView('article');
   };
 
-  const clearDatabase = () => {
-    localStorage.removeItem('devsigner_data_v3');
-    window.location.reload();
-  };
-
   const cancelWorkflow = () => {
     cancelRef.current = true;
     setIsUploading(false);
@@ -169,55 +166,65 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 md:pb-0 md:pl-64 flex flex-col bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black">
+    <div className="h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black overflow-hidden">
       <Navigation activeView={view === 'editor' ? 'article' : view} onViewChange={(v) => { setView(v); setSelectedArticle(null); }} />
       
-      <main className="flex-1 overflow-y-auto no-scrollbar">
-        {view === 'timeline' && (
-          <TimelineView 
-            caseStudies={caseStudies} 
-            assetsCount={caseStudies.reduce((acc, curr) => acc + curr.artifacts.length, 0)}
-            onViewUpload={() => setView('upload')}
-            onSelectStudy={(study) => { setSelectedArticle(study); setView('article'); }}
-          />
-        )}
+      <div className="flex-1 flex flex-col md:pl-64 min-w-0">
+        <AppHeader 
+          activeView={view} 
+          isUploadOpen={isUploadOpen}
+          onToggleUpload={() => setIsUploadOpen(!isUploadOpen)}
+          onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
+        />
         
-        {view === 'upload' && (
-          <UploadView 
-            assets={assets}
-            isUploading={isUploading}
-            isThinkingEnabled={isThinkingEnabled}
-            onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
-            onFileUpload={handleFileUpload}
-            onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
-            onCreateStudy={createStudyFromAssets}
-            onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
-          />
-        )}
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9]">
+            {view === 'timeline' && (
+              <TimelineView 
+                caseStudies={caseStudies} 
+                assetsCount={caseStudies.reduce((acc, curr) => acc + curr.artifacts.length, 0)}
+                onSelectStudy={(study) => { setSelectedArticle(study); setView('article'); }}
+              />
+            )}
+            
+            {view === 'article' && selectedArticle && (
+              <ArticleView 
+                study={selectedArticle} 
+                onBack={() => setView('timeline')} 
+                onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
+              />
+            )}
 
-        {view === 'article' && selectedArticle && (
-          <ArticleView 
-            study={selectedArticle} 
-            onBack={() => setView('timeline')} 
-            onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
-          />
-        )}
+            {view === 'editor' && selectedArticle && (
+              <EditorView 
+                study={selectedArticle}
+                onSave={handleSaveStudy}
+                onCancel={() => setView('article')}
+              />
+            )}
 
-        {view === 'editor' && selectedArticle && (
-          <EditorView 
-            study={selectedArticle}
-            onSave={handleSaveStudy}
-            onCancel={() => setView('article')}
-          />
-        )}
+            {view === 'settings' && (
+              <SettingsView onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} />
+            )}
+          </main>
 
-        {view === 'settings' && (
-          <SettingsView onClearData={clearDatabase} />
-        )}
-      </main>
+          <Drawer isOpen={isUploadOpen}>
+            <UploadView 
+              assets={assets}
+              isUploading={isUploading}
+              isThinkingEnabled={isThinkingEnabled}
+              onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
+              onFileUpload={handleFileUpload}
+              onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
+              onCreateStudy={createStudyFromAssets}
+              onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
+            />
+          </Drawer>
+        </div>
+      </div>
 
-      {/* Background Status Indicator (Sticky HUD) */}
-      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+      {/* Background Status Indicator */}
+      <div className="fixed bottom-24 inset-x-0 m-auto w-fit md:bottom-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
         {isUploading && isMinimized && (
           <div className="bg-[#FFF500] brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in slide-in-from-right-full">
             <div className="bg-black p-2">
@@ -229,16 +236,13 @@ const App: React.FC = () => {
                 <div className="h-full bg-black transition-all" style={{ width: `${processingProgress}%` }} />
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setIsMinimized(false)} className="mono text-[9px] font-bold uppercase underline hover:no-underline">Expand</button>
+                <button onClick={() => setIsMinimized(false)} className="mono text-[9px] font-bold uppercase underline hover:no-underline" style={{ pointerEvents: 'auto' }}>Expand</button>
                 <span className="text-gray-400">/</span>
-                <button onClick={cancelWorkflow} className="mono text-[9px] font-bold uppercase underline hover:no-underline text-red-600">Cancel</button>
+                <button onClick={cancelWorkflow} className="mono text-[9px] font-bold uppercase underline hover:no-underline text-red-600" style={{ pointerEvents: 'auto' }}>Cancel</button>
               </div>
             </div>
           </div>
         )}
-        <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold uppercase italic">
-          CPU_LOAD: {isUploading ? '98%' : '2%'} // RAM: 14GB // SYSTEM_ONLINE
-        </div>
       </div>
 
       {/* AI Processing Modal Component */}

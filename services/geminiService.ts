@@ -2,9 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Asset, CaseStudy } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Note: GoogleGenAI client is initialized inside each function call 
+// to ensure the latest API key is always used from process.env.API_KEY.
 
 export const analyzeAsset = async (file: File, mimeType: string, useThinking: boolean = false): Promise<Partial<Asset>> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const reader = new FileReader();
   const base64Data = await new Promise<string>((resolve) => {
     reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -38,6 +41,7 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
   });
 
   try {
+    // response.text is a property getter, do not call as a function.
     return JSON.parse(response.text || '{}');
   } catch (e) {
     console.error("Failed to parse AI response", e);
@@ -46,11 +50,16 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
 };
 
 export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, useThinking: boolean = true): Promise<Partial<CaseStudy>> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const assetInfo = assets.map(a => `- ${a.aiName} (${a.topic}, ${a.context})`).join('\n');
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Based on these design artifacts:
+    contents: {
+      parts: [
+        {
+          text: `Based on these design artifacts:
     ${assetInfo}
     
     And this user context: "${contextPrompt}"
@@ -67,7 +76,10 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     - seoMetadata: { title, description, keywords[] }
     - tags: 3 string tags.
     
-    Return as a structured JSON object.`,
+    Return as a structured JSON object.`
+        }
+      ]
+    },
     config: {
       ...(useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {}),
       responseMimeType: 'application/json',
@@ -93,5 +105,6 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     }
   });
 
+  // response.text is a property getter, do not call as a function.
   return JSON.parse(response.text || '{}');
 };

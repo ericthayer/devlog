@@ -11,7 +11,6 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
   const navItems: { id: AppView; icon: any; label: string }[] = [
     { id: 'timeline', icon: 'LayoutList', label: 'Feed' },
-    { id: 'upload', icon: 'PlusSquare', label: 'Add' },
     { id: 'settings', icon: 'Settings', label: 'Settings' },
   ];
 
@@ -36,7 +35,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       </nav>
 
       {/* Desktop Sidebar */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r-4 border-black flex-col p-8 z-50">
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r-4 border-black flex-col p-8 z-50 overflow-y-auto no-scrollbar">
         <div className="mb-12">
           <h1 className="text-3xl font-black italic tracking-tighter leading-none">
             DEV<br/>SIGNER<br/>LOG_
@@ -48,7 +47,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`flex items-center gap-4 px-4 py-3 brutalist-border text-lg font-bold uppercase transition-all ${
-                activeView === item.id 
+                activeView === item.id || (activeView === 'article' && item.id === 'timeline')
                 ? 'bg-[#FFF500] brutalist-shadow' 
                 : 'hover:bg-gray-50'
               }`}
@@ -59,7 +58,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           ))}
         </div>
         <div className="mt-auto bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
-          v0.1.0-alpha<br/>
+          v1.0.0-beta<br/>
           OFFLINE CACHE: OK
         </div>
       </nav>

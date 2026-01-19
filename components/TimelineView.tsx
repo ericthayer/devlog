@@ -7,7 +7,6 @@ import { CaseStudy } from '../types';
 interface TimelineViewProps {
   caseStudies: CaseStudy[];
   assetsCount: number;
-  onViewUpload: () => void;
   onSelectStudy: (study: CaseStudy) => void;
 }
 
@@ -16,7 +15,6 @@ type SortOrder = 'newest' | 'oldest';
 export const TimelineView: React.FC<TimelineViewProps> = ({ 
   caseStudies, 
   assetsCount, 
-  onViewUpload, 
   onSelectStudy 
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,27 +51,20 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     <div className="p-4 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-8 border-black pb-6 gap-6">
         <div>
-          <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter italic leading-none">Contributions</h2>
-          <div className="flex flex-wrap gap-2 mt-4">
-            <p className="mono text-xs font-bold bg-black text-[#FFF500] inline-block px-3 py-1 uppercase tracking-widest">
+          <div className="flex flex-wrap gap-2">
+            <p className="mono text-[10px] font-bold bg-black text-[#FFF500] inline-block px-3 py-1 uppercase tracking-widest">
               SYSTEM_SYNC: ACTIVE
             </p>
-            <p className="mono text-xs font-bold bg-zinc-200 text-black inline-block px-3 py-1 uppercase tracking-widest">
+            <p className="mono text-[10px] font-bold bg-zinc-200 text-black inline-block px-3 py-1 uppercase tracking-widest">
               RECORDS: {caseStudies.length} / ASSETS: {assetsCount}
             </p>
           </div>
-        </div>
-        <div className="mt-4 md:mt-0">
-          <BrutalistButton variant="primary" onClick={onViewUpload} className="text-xl px-10 py-5">
-            <Icon name="Zap" /> NEW_LOG
-          </BrutalistButton>
         </div>
       </header>
 
       {/* Filter Interface */}
       <div className="mb-12 space-y-6">
         <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-          {/* Enhanced Search Input */}
           <div className="relative flex-1 group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 group-focus-within:text-black transition-colors">
               <Icon name="Search" size={24} />
@@ -87,7 +78,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             />
           </div>
 
-          {/* Core Controls */}
           <div className="flex flex-wrap gap-3">
             <div className="flex brutalist-border bg-white overflow-hidden h-full">
               {(['all', 'draft', 'published'] as const).map((status) => (
@@ -108,12 +98,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               className="px-6 py-4 brutalist-border bg-white text-[11px] font-black uppercase flex items-center gap-3 hover:bg-[#FFF500] transition-all"
             >
               <Icon name={sortOrder === 'newest' ? 'ArrowDownNarrowWide' : 'ArrowUpNarrowWide'} size={18} />
-              {sortOrder === 'newest' ? 'NEWEST_FIRST' : 'OLDEST_FIRST'}
+              {sortOrder === 'newest' ? 'NEWEST' : 'OLDEST'}
             </button>
           </div>
         </div>
 
-        {/* Dynamic Tag Grid */}
         {allTags.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-4 border-t-4 border-black border-dotted">
             <button
@@ -122,7 +111,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 selectedTag === null ? 'bg-black text-white' : 'bg-white hover:bg-zinc-100'
               }`}
             >
-              SHOW_ALL_TAGS
+              SHOW_ALL
             </button>
             {allTags.map(tag => (
               <button
@@ -148,9 +137,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               Record_Not_Found
             </h3>
             <p className="mono text-xs text-zinc-300 mt-4 uppercase">Adjusting search parameters might restore data connectivity.</p>
-            <BrutalistButton className="mt-10" onClick={() => { setSearchQuery(''); setSelectedTag(null); setSelectedStatus('all'); }}>
-              Reset System Filter
-            </BrutalistButton>
           </div>
         ) : (
           filteredStudies.map(study => (
@@ -159,7 +145,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               onClick={() => onSelectStudy(study)}
               className="group cursor-pointer brutalist-border bg-white brutalist-shadow hover:brutalist-shadow-active hover:-translate-y-1 transition-all flex flex-col overflow-hidden h-full"
             >
-              {/* Card Body */}
               <div className="p-8 md:p-10 flex-1 flex flex-col">
                 <div className="flex justify-between items-center mb-8">
                   <span className={`px-4 py-1.5 brutalist-border text-[10px] font-black uppercase italic ${
@@ -173,12 +158,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   </div>
                 </div>
                 
-                {/* Robust Title with Clamping */}
                 <h3 className="text-3xl md:text-4xl font-black leading-tight mb-6 group-hover:underline uppercase italic line-clamp-2 decoration-8 decoration-[#FFF500] underline-offset-4">
                   {study.title}
                 </h3>
                 
-                {/* Descriptive Narrative with Clamping */}
                 <p className="text-base line-clamp-3 mb-8 opacity-70 leading-relaxed font-bold text-zinc-600 flex-1">
                   {study.problem}
                 </p>
@@ -195,7 +178,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 </div>
               </div>
               
-              {/* Card Asset Strip */}
               <div className="bg-zinc-50 p-6 border-t-4 border-black flex items-center justify-between gap-4">
                 <div className="flex -space-x-3 overflow-hidden">
                   {study.artifacts.slice(0, 5).map((a, idx) => (
