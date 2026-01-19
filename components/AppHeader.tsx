@@ -7,14 +7,18 @@ import { AppView } from '../types';
 interface AppHeaderProps {
   activeView: AppView;
   isUploadOpen: boolean;
+  isSettingsOpen: boolean;
   onToggleUpload: () => void;
+  onToggleSettings: () => void;
   onBack?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ 
   activeView, 
-  isUploadOpen, 
+  isUploadOpen,
+  isSettingsOpen,
   onToggleUpload,
+  onToggleSettings,
   onBack 
 }) => {
   const getViewTitle = () => {
@@ -22,7 +26,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       case 'timeline': return 'Contributions';
       case 'article': return 'Contribution_Detail';
       case 'editor': return 'Editor_Core';
-      case 'settings': return 'Global_Matrix';
       default: return 'System_Node';
     }
   };
@@ -52,7 +55,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3 md:gap-4 items-center">
+         <BrutalistButton 
+          variant={isSettingsOpen ? 'primary' : 'secondary'} 
+          onClick={onToggleSettings}
+          title="Global Settings"
+          className={`text-sm py-2 px-6 transition-colors ${isSettingsOpen ? 'bg-[#FFF500]' : ''}`}
+        >
+          <Icon name="Settings" size={18} />
+        </BrutalistButton>
+
         <BrutalistButton 
           variant={isUploadOpen ? 'primary' : 'secondary'} 
           onClick={onToggleUpload} 

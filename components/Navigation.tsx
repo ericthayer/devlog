@@ -11,7 +11,6 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
   const navItems: { id: AppView; icon: any; label: string }[] = [
     { id: 'timeline', icon: 'LayoutList', label: 'Feed' },
-    { id: 'settings', icon: 'Settings', label: 'Settings' },
   ];
 
   return (
@@ -35,7 +34,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       </nav>
 
       {/* Desktop Sidebar */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r-4 border-black flex-col p-8 z-50 overflow-y-auto no-scrollbar">
+      <nav className="hidden md:hidden fixed left-0 top-0 bottom-0 w-64 bg-white border-r-4 border-black flex-col p-8 z-50 overflow-y-auto no-scrollbar">
         <div className="mb-12">
           <h1 className="text-3xl font-black italic tracking-tighter leading-none">
             DEV<br/>SIGNER<br/>LOG_

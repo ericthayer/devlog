@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -110,7 +111,6 @@ const App: React.FC = () => {
     let progressTimer: any;
 
     try {
-      // Dynamic progress that slows down as it gets closer to 90
       progressTimer = setInterval(() => {
         setProcessingProgress(prev => {
           if (prev < 60) return prev + 4;
@@ -172,79 +172,102 @@ const App: React.FC = () => {
     setIsMinimized(true);
   };
 
+  const toggleUpload = () => {
+    if (!isUploadOpen) setIsSettingsOpen(false);
+    setIsUploadOpen(!isUploadOpen);
+  };
+
+  const toggleSettings = () => {
+    if (!isSettingsOpen) setIsUploadOpen(false);
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
   return (
     <div className="h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black overflow-hidden">
-      <Navigation activeView={view === 'editor' ? 'article' : view} onViewChange={(v) => { setView(v); setSelectedArticle(null); }} />
+      <Navigation
+        activeView={view === 'editor' ? 'article' : view} 
+        onViewChange={(v) => { 
+          setView(v); 
+          setSelectedArticle(null); 
+          setIsUploadOpen(false);
+          setIsSettingsOpen(false);
+        }} 
+      />
       
-      <div className="flex-1 flex flex-col md:pl-64 min-w-0">
+      <div className="flex-1 flex flex-col md:pl-0 min-w-0">
         <AppHeader 
           activeView={view} 
           isUploadOpen={isUploadOpen}
-          onToggleUpload={() => setIsUploadOpen(!isUploadOpen)}
+          isSettingsOpen={isSettingsOpen}
+          onToggleUpload={toggleUpload}
+          onToggleSettings={toggleSettings}
           onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
         />
         
-        <div className="flex-1 flex overflow-hidden">
-          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9 relative">
-            {view === 'timeline' && (
-              <TimelineView 
-                caseStudies={caseStudies} 
-                assetsCount={caseStudies.reduce((acc, curr) => acc + curr.artifacts.length, 0)}
-                onSelectStudy={(study) => { setSelectedArticle(study); setView('article'); }}
-              />
-            )}
-            
-            {view === 'article' && selectedArticle && (
-              <ArticleView 
-                study={selectedArticle} 
-                onBack={() => setView('timeline')} 
-                onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
-              />
-            )}
+        <div className="flex-1 flex overflow-hidden h-dvh">
+          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
+            <div className="w-full flex-1 grid grid-rows-[1fr_auto]">
+              {view === 'timeline' && (
+                <TimelineView 
+                  caseStudies={caseStudies} 
+                  assetsCount={caseStudies.reduce((acc, curr) => acc + curr.artifacts.length, 0)}
+                  onSelectStudy={(study) => { setSelectedArticle(study); setView('article'); }}
+                />
+              )}
+              
+              {view === 'article' && selectedArticle && (
+                <ArticleView 
+                  study={selectedArticle} 
+                  onBack={() => setView('timeline')} 
+                  onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
+                />
+              )}
 
-            {view === 'editor' && selectedArticle && (
-              <EditorView 
-                study={selectedArticle}
-                onSave={handleSaveStudy}
-                onCancel={() => setView('article')}
-              />
-            )}
+              {view === 'editor' && selectedArticle && (
+                <EditorView 
+                  study={selectedArticle}
+                  onSave={handleSaveStudy}
+                  onCancel={() => setView('article')}
+                />
+              )}
 
-            {view === 'settings' && (
-              <SettingsView onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} />
-            )}
-
-            {/* App Version */}
-             <div className="absolute bottom-24 left-4 md:bottom-8 md:left-8 z-[60] pointer-events-none bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
-              v1.0.0-alpha<br/>
-              OFFLINE CACHE: OK
+              <div className="flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto">
+                {/* App Version Info */}
+                <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
+                  v1.0.0-alpha // OFFLINE CACHE: OK
+                </div>                        
+                {/* Persistent System Info HUD */}
+                <SystemHud isUploading={isUploading} />
+              </div>
             </div>
-
-            {/* Persistent HUD / Global Status */}
-            <SystemHud isUploading={isUploading} />
           </main>
 
-          <Drawer isOpen={isUploadOpen}>
-            <UploadView 
-              assets={assets}
-              isUploading={isUploading}
-              progress={processingProgress}
-              isThinkingEnabled={isThinkingEnabled}
-              onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
-              onFileUpload={handleFileUpload}
-              onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
-              onCreateStudy={createStudyFromAssets}
-              onExpand={() => setIsMinimized(false)}
-              onCancel={cancelWorkflow}
-              onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
-            />
+          <Drawer isOpen={isUploadOpen || isSettingsOpen}>
+            {isUploadOpen ? (
+              <UploadView 
+                assets={assets}
+                isUploading={isUploading}
+                progress={processingProgress}
+                isThinkingEnabled={isThinkingEnabled}
+                onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
+                onFileUpload={handleFileUpload}
+                onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
+                onCreateStudy={createStudyFromAssets}
+                onExpand={() => setIsMinimized(false)}
+                onCancel={cancelWorkflow}
+                onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
+              />
+            ) : isSettingsOpen ? (
+              <SettingsView onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} />
+            ) : null}
           </Drawer>
         </div>
       </div>
 
-      {/* Floating Status Indicator (Visible when processing is minimized) */}
+      {/* Global Status HUD Stack - Fixed to bottom right */}
       <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
-        {isUploading && isMinimized && !isUploadOpen && (
+        {/* Floating AI Processing Status (Only if minimized and drawer closed) */}
+        {isUploading && isMinimized && !isUploadOpen && !isSettingsOpen && (
           <ProcessingStatus 
             variant="floating"
             progress={processingProgress}
@@ -254,8 +277,8 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* AI Processing Modal Component - Only rendered when user explicitly expands (isMinimized === false) */}
-      {isUploading && (
+      {/* AI Processing Modal - Visible ONLY when user explicitly expands */}
+      {isUploading && !isMinimized && (
         <ProcessingModal 
           isMinimized={isMinimized}
           isThinkingEnabled={isThinkingEnabled}
@@ -266,7 +289,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Error Toasts */}
+      {/* Notifications */}
       {errorMessage && (
         <Toast 
           message={errorMessage} 
