@@ -185,7 +185,7 @@ const App: React.FC = () => {
         />
         
         <div className="flex-1 flex overflow-hidden">
-          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9]">
+          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9 relative">
             {view === 'timeline' && (
               <TimelineView 
                 caseStudies={caseStudies} 
@@ -213,6 +213,15 @@ const App: React.FC = () => {
             {view === 'settings' && (
               <SettingsView onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} />
             )}
+
+            {/* App Version */}
+             <div className="absolute bottom-24 left-4 md:bottom-8 md:left-8 z-[60] pointer-events-none bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
+              v1.0.0-beta<br/>
+              OFFLINE CACHE: OK
+            </div>
+
+            {/* Persistent HUD / Global Status */}
+            <SystemHud isUploading={isUploading} />
           </main>
 
           <Drawer isOpen={isUploadOpen}>
@@ -232,9 +241,6 @@ const App: React.FC = () => {
           </Drawer>
         </div>
       </div>
-
-      {/* Persistent HUD / Global Status */}
-      <SystemHud isUploading={isUploading} />
 
       {/* Floating Status Indicator (Visible when processing is minimized) */}
       <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">

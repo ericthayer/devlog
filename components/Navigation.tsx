@@ -57,10 +57,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
             </button>
           ))}
         </div>
-        <div className="mt-auto bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
-          v1.0.0-beta<br/>
-          OFFLINE CACHE: OK
-        </div>
       </nav>
     </>
   );
