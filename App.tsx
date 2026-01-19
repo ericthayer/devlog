@@ -231,7 +231,7 @@ const App: React.FC = () => {
                 />
               )}
 
-              <div className="flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto">
+              <div className={`flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white': ''}`}>
                 {/* App Version Info */}
                 <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
                   v1.0.0-alpha // OFFLINE CACHE: OK

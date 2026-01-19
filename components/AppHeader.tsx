@@ -36,7 +36,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {onBack && (
           <button 
             onClick={onBack} 
-            className="flex items-center gap-2 font-black uppercase hover:translate-x-[-4px] transition-transform group"
+            className="flex !hidden items-center gap-2 font-black uppercase hover:translate-x-[-4px] transition-transform group"
           >
             <div className="bg-black text-white p-2 group-hover:bg-[#FFF500] group-hover:text-black transition-colors brutalist-border">
               <Icon name="ArrowLeft" size={18} />
@@ -60,7 +60,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           variant={isSettingsOpen ? 'primary' : 'secondary'} 
           onClick={onToggleSettings}
           title="Global Settings"
-          className={`text-sm py-2 px-6 transition-colors ${isSettingsOpen ? 'bg-[#FFF500]' : ''}`}
+          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isSettingsOpen ? 'bg-[#FFF500]' : ''}`}
         >
           <Icon name="Settings" size={18} />
         </BrutalistButton>
@@ -68,10 +68,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <BrutalistButton 
           variant={isUploadOpen ? 'primary' : 'secondary'} 
           onClick={onToggleUpload} 
-          className={`text-sm py-2 px-6 transition-colors ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
+          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
         >
-          <Icon name={isUploadOpen ? 'X' : 'Zap'} size={18} />
-          <span className="hidden sm:inline">{isUploadOpen ? 'CLOSE_SYSTEM' : 'NEW_LOG'}</span>
+          <Icon name={isUploadOpen ? 'Zap' : 'Zap'} size={18} />
+          {/*<span className="hidden sm:inline">{isUploadOpen ? 'CLOSE' : 'NEW_LOG'}</span>*/}
         </BrutalistButton>
       </div>
     </header>
