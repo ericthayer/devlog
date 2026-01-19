@@ -216,7 +216,7 @@ const App: React.FC = () => {
 
             {/* App Version */}
              <div className="absolute bottom-24 left-4 md:bottom-8 md:left-8 z-[60] pointer-events-none bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
-              v1.0.0-beta<br/>
+              v1.0.0-alpha<br/>
               OFFLINE CACHE: OK
             </div>
 
