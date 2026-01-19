@@ -2,12 +2,20 @@
 import React from 'react';
 import { Icon } from './Icon';
 import { BrutalistButton } from './BrutalistButton';
+import { SettingsItem } from './SettingsItem';
+import { UserPreferences } from '../types';
 
 interface SettingsViewProps {
+  preferences: UserPreferences;
+  onUpdatePreferences: (prefs: Partial<UserPreferences>) => void;
   onClearData: () => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ onClearData }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ 
+  preferences, 
+  onUpdatePreferences, 
+  onClearData 
+}) => {
   return (
     <div className="flex flex-col h-full bg-white">
       <header className="p-6 border-b-4 border-black bg-white flex items-center justify-between">
@@ -19,31 +27,72 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClearData }) => {
       
       <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 brutalist-border hover:bg-gray-50 transition-colors bg-white">
-            <div className="flex items-center gap-3">
-              <Icon name="Repeat" size={20} />
-              <span className="font-black uppercase italic text-xs">AI Auto-Rename</span>
+          <SettingsItem 
+            icon="Palette" 
+            label="Visual_Theme" 
+            description={`Current: ${preferences.theme}`}
+          >
+            <div className="flex brutalist-border bg-black p-0.5">
+              {(['light', 'dark'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => onUpdatePreferences({ theme: t })}
+                  className={`px-3 py-1 text-[9px] font-black uppercase transition-all ${
+                    preferences.theme === t 
+                      ? 'bg-[#FFF500] text-black' 
+                      : 'bg-black text-white hover:text-[#FFF500]'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
             </div>
-            <div className="w-12 h-6 bg-black relative border-2 border-black cursor-pointer">
-              <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-[#FFF500] border-2 border-black" />
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 brutalist-border hover:bg-gray-50 transition-colors bg-white">
-            <div className="flex items-center gap-3">
-              <Icon name="Rss" size={20} />
-              <span className="font-black uppercase italic text-xs">Live RSS Feed</span>
-            </div>
-            <span className="mono text-[8px] font-black bg-black text-white px-2 py-1 uppercase">Disabled</span>
-          </div>
+          </SettingsItem>
 
-          <div className="flex items-center justify-between p-4 brutalist-border bg-gray-50">
-            <div className="flex items-center gap-3">
-              <Icon name="HardDrive" size={20} />
-              <span className="font-black uppercase italic text-xs">PWA Cache</span>
+          <SettingsItem 
+            icon="FileJson" 
+            label="Export_Format" 
+            description="Default download type"
+          >
+            <div className="flex brutalist-border bg-black p-0.5">
+              {(['markdown', 'json'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => onUpdatePreferences({ exportFormat: f })}
+                  className={`px-3 py-1 text-[9px] font-black uppercase transition-all ${
+                    preferences.exportFormat === f 
+                      ? 'bg-[#FFF500] text-black' 
+                      : 'bg-black text-white hover:text-[#FFF500]'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
             </div>
+          </SettingsItem>
+
+          <SettingsItem 
+            icon="Repeat" 
+            label="AI Auto-Rename" 
+            description="Process filenames on upload"
+          >
+            <button 
+              onClick={() => onUpdatePreferences({ autoRename: !preferences.autoRename })}
+              className={`w-12 h-6 brutalist-border relative transition-all ${preferences.autoRename ? 'bg-black' : 'bg-zinc-200'}`}
+            >
+              <div className={`absolute top-0.5 w-4 h-4 transition-all brutalist-border ${
+                preferences.autoRename ? 'right-0.5 bg-[#FFF500]' : 'left-0.5 bg-white'
+              }`} />
+            </button>
+          </SettingsItem>
+
+          <SettingsItem 
+            icon="HardDrive" 
+            label="PWA Cache" 
+            description="Asset persistence status"
+          >
             <span className="mono text-[8px] font-black text-green-600 underline uppercase italic">Healthy</span>
-          </div>
+          </SettingsItem>
         </div>
 
         <div className="pt-6 border-t-4 border-black border-dotted">

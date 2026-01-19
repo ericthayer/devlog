@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AppView, CaseStudy, Asset } from './types';
+import { AppView, CaseStudy, Asset, UserPreferences } from './types';
 import { Navigation } from './components/Navigation';
 import { AppHeader } from './components/AppHeader';
 import { Drawer } from './components/Drawer';
@@ -17,10 +17,17 @@ import { Toast } from './components/Toast';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
+const DEFAULT_PREFERENCES: UserPreferences = {
+  theme: 'light',
+  autoRename: true,
+  exportFormat: 'markdown'
+};
+
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>('timeline');
   const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isUploading, setIsUploading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -40,6 +47,9 @@ const App: React.FC = () => {
       const parsed = JSON.parse(saved);
       setCaseStudies(parsed.caseStudies || []);
       setAssets(parsed.assets || []);
+      if (parsed.preferences) {
+        setPreferences(parsed.preferences);
+      }
     } else {
       setCaseStudies(DEMO_STUDIES);
       setAssets([]);
@@ -47,8 +57,8 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('devsigner_data_v3', JSON.stringify({ caseStudies, assets }));
-  }, [caseStudies, assets]);
+    localStorage.setItem('devsigner_data_v3', JSON.stringify({ caseStudies, assets, preferences }));
+  }, [caseStudies, assets, preferences]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -67,19 +77,25 @@ const App: React.FC = () => {
       
       const file = files[i];
       try {
-        const analysis = await analyzeAsset(file, file.type, isThinkingEnabled);
+        let assetData: Partial<Asset> = {};
+        
+        if (preferences.autoRename) {
+          assetData = await analyzeAsset(file, file.type, isThinkingEnabled);
+        }
         
         if (cancelRef.current) break;
 
         const asset: Asset = {
           id: Math.random().toString(36).substr(2, 9),
           originalName: file.name,
-          aiName: `${analysis.topic || 'misc'}-${analysis.type || 'file'}-${analysis.context || 'dev'}-${analysis.variant || 'v1'}-${analysis.version || '1.0'}-${file.name.split('.').pop()}`,
-          type: analysis.type || 'unknown',
-          topic: analysis.topic || 'misc',
-          context: analysis.context || 'dev',
-          variant: analysis.variant || 'v1',
-          version: analysis.version || '1.0',
+          aiName: preferences.autoRename 
+            ? `${assetData.topic || 'misc'}-${assetData.type || 'file'}-${assetData.context || 'dev'}-${assetData.variant || 'v1'}-${assetData.version || '1.0'}-${file.name.split('.').pop()}`
+            : file.name,
+          type: assetData.type || 'unknown',
+          topic: assetData.topic || 'misc',
+          context: assetData.context || 'dev',
+          variant: assetData.variant || 'v1',
+          version: assetData.version || '1.0',
           fileType: file.name.split('.').pop() || '',
           url: URL.createObjectURL(file),
           size: file.size
@@ -182,8 +198,12 @@ const App: React.FC = () => {
     setIsSettingsOpen(!isSettingsOpen);
   };
 
+  const handleUpdatePreferences = (newPrefs: Partial<UserPreferences>) => {
+    setPreferences(prev => ({ ...prev, ...newPrefs }));
+  };
+
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black overflow-hidden">
+    <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black overflow-hidden ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
       <Navigation
         activeView={view === 'editor' ? 'article' : view} 
         onViewChange={(v) => { 
@@ -232,11 +252,9 @@ const App: React.FC = () => {
               )}
 
               <div className={`flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white': ''}`}>
-                {/* App Version Info */}
                 <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
                   v1.0.0-alpha // OFFLINE CACHE: OK
                 </div>                        
-                {/* Persistent System Info HUD */}
                 <SystemHud isUploading={isUploading} />
               </div>
             </div>
@@ -258,15 +276,17 @@ const App: React.FC = () => {
                 onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
               />
             ) : isSettingsOpen ? (
-              <SettingsView onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} />
+              <SettingsView 
+                preferences={preferences}
+                onUpdatePreferences={handleUpdatePreferences}
+                onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} 
+              />
             ) : null}
           </Drawer>
         </div>
       </div>
 
-      {/* Global Status HUD Stack - Fixed to bottom right */}
       <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
-        {/* Floating AI Processing Status (Only if minimized and drawer closed) */}
         {isUploading && isMinimized && !isUploadOpen && !isSettingsOpen && (
           <ProcessingStatus 
             variant="floating"
@@ -277,7 +297,6 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* AI Processing Modal - Visible ONLY when user explicitly expands */}
       {isUploading && !isMinimized && (
         <ProcessingModal 
           isMinimized={isMinimized}
@@ -289,7 +308,6 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Notifications */}
       {errorMessage && (
         <Toast 
           message={errorMessage} 
