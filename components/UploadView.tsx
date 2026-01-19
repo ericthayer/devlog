@@ -2,28 +2,35 @@
 import React from 'react';
 import { Icon } from './Icon';
 import { BrutalistButton } from './BrutalistButton';
+import { ProcessingStatus } from './ProcessingStatus';
 import { Asset } from '../types';
 import { DEMO_ASSETS } from '../utils/demoData';
 
 interface UploadViewProps {
   assets: Asset[];
   isUploading: boolean;
+  progress: number;
   isThinkingEnabled: boolean;
   onToggleThinking: () => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAsset: (id: string) => void;
   onCreateStudy: () => void;
+  onExpand: () => void;
+  onCancel: () => void;
   onAddDemoAssets?: (assets: Asset[]) => void;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({
   assets,
   isUploading,
+  progress,
   isThinkingEnabled,
   onToggleThinking,
   onFileUpload,
   onRemoveAsset,
   onCreateStudy,
+  onExpand,
+  onCancel,
   onAddDemoAssets
 }) => {
   return (
@@ -33,7 +40,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
           <h3 className="text-2xl font-black uppercase italic leading-none">Capture_System</h3>
           <p className="mono text-[8px] font-bold mt-1 opacity-60">READY FOR MULTI-FILE INGESTION</p>
         </div>
-        {assets.length === 0 && (
+        {assets.length === 0 && !isUploading && (
           <button 
             onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
             className="mono text-[8px] font-black uppercase underline hover:no-underline bg-black text-white px-2 py-1"
@@ -44,6 +51,18 @@ export const UploadView: React.FC<UploadViewProps> = ({
       </header>
       
       <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+        {/* Processing Status Indicator in Drawer */}
+        {isUploading && (
+          <div className="mb-4">
+            <ProcessingStatus 
+              variant="inline"
+              progress={progress}
+              onExpand={onExpand}
+              onCancel={onCancel}
+            />
+          </div>
+        )}
+
         {/* Thinking Mode Toggle */}
         <div className="flex items-center justify-between p-4 bg-black text-[#FFF500] brutalist-border">
           <div className="flex items-center gap-3">
@@ -61,33 +80,37 @@ export const UploadView: React.FC<UploadViewProps> = ({
           </button>
         </div>
 
-        <div className="border-4 border-dashed border-black p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-[#FFF50011] transition-all cursor-pointer relative group">
-          <input 
-            type="file" 
-            multiple 
-            onChange={onFileUpload}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-            accept="image/*,.pdf,.mp4,.webm,.mov,.fig"
-          />
-          <div className="group-hover:scale-110 transition-transform duration-300 text-black">
-            <Icon name="UploadCloud" size={48} className="mb-2" />
+        {!isUploading && (
+          <div className="border-4 border-dashed border-black p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-[#FFF50011] transition-all cursor-pointer relative group">
+            <input 
+              type="file" 
+              multiple 
+              onChange={onFileUpload}
+              className="absolute inset-0 opacity-0 cursor-pointer z-10"
+              accept="image/*,.pdf,.mp4,.webm,.mov,.fig"
+            />
+            <div className="group-hover:scale-110 transition-transform duration-300 text-black">
+              <Icon name="UploadCloud" size={48} className="mb-2" />
+            </div>
+            <p className="text-xl font-black uppercase tracking-tight text-center">Drop Artifacts</p>
+            <p className="mono text-[8px] mt-2 bg-black text-white px-3 py-0.5 uppercase tracking-widest text-center">
+              SELECT FILES
+            </p>
           </div>
-          <p className="text-xl font-black uppercase tracking-tight text-center">Drop Artifacts</p>
-          <p className="mono text-[8px] mt-2 bg-black text-white px-3 py-0.5 uppercase tracking-widest text-center">
-            SELECT FILES
-          </p>
-        </div>
+        )}
 
         {assets.length > 0 && (
           <div className="space-y-6 animate-in slide-in-from-bottom-2">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black uppercase italic">Staged Pipeline ({assets.length})</h3>
-              <button 
-                onClick={() => assets.forEach(a => onRemoveAsset(a.id))}
-                className="mono text-[8px] font-black uppercase text-red-600 hover:underline"
-              >
-                Clear
-              </button>
+              {!isUploading && (
+                <button 
+                  onClick={() => assets.forEach(a => onRemoveAsset(a.id))}
+                  className="mono text-[8px] font-black uppercase text-red-600 hover:underline"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-4">
@@ -112,12 +135,14 @@ export const UploadView: React.FC<UploadViewProps> = ({
                     <p className="mono text-[9px] font-black break-all leading-tight mb-1 uppercase line-clamp-1">{asset.aiName}</p>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-dotted border-black">
                       <span className="text-[8px] font-black bg-gray-100 px-2 py-0.5 border border-black uppercase">{asset.topic}</span>
-                      <button 
-                        onClick={() => onRemoveAsset(asset.id)}
-                        className="text-red-500 hover:scale-110 transition-transform"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </button>
+                      {!isUploading && (
+                        <button 
+                          onClick={() => onRemoveAsset(asset.id)}
+                          className="text-red-500 hover:scale-110 transition-transform"
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

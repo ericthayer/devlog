@@ -10,7 +10,7 @@ import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
 import { ProcessingModal } from './components/ProcessingModal';
-// Fixed: Added missing Icon import
+import { ProcessingStatus } from './components/ProcessingStatus';
 import { Icon } from './components/Icon';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
@@ -29,13 +29,6 @@ const App: React.FC = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   
   const cancelRef = useRef(false);
-
-  useEffect(() => {
-    if (isUploading && !isMinimized) {
-      const timer = setTimeout(() => setIsMinimized(true), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [isUploading, isMinimized]);
 
   useEffect(() => {
     const saved = localStorage.getItem('devsigner_data_v3');
@@ -58,7 +51,8 @@ const App: React.FC = () => {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    setIsMinimized(false);
+    // Modified: Start minimized to avoid blocking the user's view
+    setIsMinimized(true);
     setProcessingStep('analyzing');
     setProcessingProgress(0);
     cancelRef.current = false;
@@ -99,13 +93,15 @@ const App: React.FC = () => {
     }
     
     setIsUploading(false);
+    // Keep it minimized or reset for next flow
     setIsMinimized(true);
   };
 
   const createStudyFromAssets = async () => {
     if (assets.length === 0) return;
     setIsUploading(true);
-    setIsMinimized(false);
+    // Modified: Start minimized to ensure the user can still interact with the UI
+    setIsMinimized(true);
     setProcessingStep('generating');
     setProcessingProgress(10);
     cancelRef.current = false;
@@ -144,7 +140,7 @@ const App: React.FC = () => {
         setSelectedArticle(fullStudy);
         setView('article');
         setIsUploading(false);
-        setIsMinimized(false);
+        setIsMinimized(true);
         setIsUploadOpen(false);
       }, 500);
     } catch (err) {
@@ -162,7 +158,7 @@ const App: React.FC = () => {
   const cancelWorkflow = () => {
     cancelRef.current = true;
     setIsUploading(false);
-    setIsMinimized(false);
+    setIsMinimized(true);
   };
 
   return (
@@ -212,47 +208,40 @@ const App: React.FC = () => {
             <UploadView 
               assets={assets}
               isUploading={isUploading}
+              progress={processingProgress}
               isThinkingEnabled={isThinkingEnabled}
               onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
               onFileUpload={handleFileUpload}
               onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
               onCreateStudy={createStudyFromAssets}
+              onExpand={() => setIsMinimized(false)}
+              onCancel={cancelWorkflow}
               onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
             />
           </Drawer>
         </div>
       </div>
 
-      {/* Background Status Indicator */}
-      <div className="fixed bottom-24 inset-x-0 m-auto w-fit md:bottom-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
-        {isUploading && isMinimized && (
-          <div className="bg-[#FFF500] brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in slide-in-from-right-full">
-            <div className="bg-black p-2">
-              <Icon name="Cpu" size={20} className="text-[#FFF500] animate-spin" />
-            </div>
-            <div className="flex flex-col min-w-[140px]">
-              <span className="text-xs font-black uppercase italic">AI Processing...</span>
-              <div className="w-full h-1 bg-black/10 mt-1 mb-1">
-                <div className="h-full bg-black transition-all" style={{ width: `${processingProgress}%` }} />
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setIsMinimized(false)} className="mono text-[9px] font-bold uppercase underline hover:no-underline" style={{ pointerEvents: 'auto' }}>Expand</button>
-                <span className="text-gray-400">/</span>
-                <button onClick={cancelWorkflow} className="mono text-[9px] font-bold uppercase underline hover:no-underline text-red-600" style={{ pointerEvents: 'auto' }}>Cancel</button>
-              </div>
-            </div>
-          </div>
+      {/* Floating Status Indicator (Visible when processing is minimized) */}
+      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+        {isUploading && isMinimized && !isUploadOpen && (
+          <ProcessingStatus 
+            variant="floating"
+            progress={processingProgress}
+            onExpand={() => setIsMinimized(false)}
+            onCancel={cancelWorkflow}
+          />
         )}
       </div>
 
-      {/* AI Processing Modal Component */}
+      {/* AI Processing Modal Component - Only rendered when user explicitly expands (isMinimized === false) */}
       {isUploading && (
         <ProcessingModal 
           isMinimized={isMinimized}
           isThinkingEnabled={isThinkingEnabled}
           step={processingStep}
           progress={processingProgress}
-          onMinimize={setIsMinimized}
+          onMinimize={() => setIsMinimized(true)}
           onCancel={cancelWorkflow}
         />
       )}
