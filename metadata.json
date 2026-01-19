@@ -1,0 +1,8 @@
+{
+  "name": "DEVSIGNER LOG - Brutalist Case Study Engine",
+  "description": "A high-performance personal productivity tool for UX Designers and FE Developers to transform daily artifacts into professional mini-case studies using Gemini AI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
