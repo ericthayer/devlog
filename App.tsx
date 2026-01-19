@@ -32,7 +32,9 @@ const App: React.FC = () => {
     } else {
       // Load demo data if fresh start
       setCaseStudies(DEMO_STUDIES);
-      setAssets(DEMO_ASSETS);
+      // We start with empty assets in staging for the first view, 
+      // but the demo data is available in the "Contributions" feed.
+      setAssets([]);
     }
   }, []);
 
@@ -162,6 +164,7 @@ const App: React.FC = () => {
             onFileUpload={handleFileUpload}
             onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
             onCreateStudy={createStudyFromAssets}
+            onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
           />
         )}
 
