@@ -26,7 +26,7 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
       </div>
       <div className="flex flex-col min-w-[160px]">
         <div className="flex justify-between items-end mb-1">
-          <span className="text-sm font-black uppercase italic leading-none">AIPROCESSING</span>
+          <span className="text-sm font-black uppercase italic leading-none">Processing</span>
           <span className="mono text-[10px] font-black">{Math.round(progress)}%</span>
         </div>
         <div className="w-full h-2 bg-black/10 mb-2 border-2 border-black overflow-hidden bg-white">
