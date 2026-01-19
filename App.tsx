@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView, CaseStudy, Asset } from './types';
 import { Navigation } from './components/Navigation';
 import { Icon } from './components/Icon';
@@ -16,7 +16,11 @@ const App: React.FC = () => {
   const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
+  
+  // Ref to handle cancellation of async loops
+  const cancelRef = useRef(false);
 
   // Initialize from LocalStorage or Load Demo Data
   useEffect(() => {
@@ -42,13 +46,20 @@ const App: React.FC = () => {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    setIsMinimized(false);
+    cancelRef.current = false;
+    
     const newAssets: Asset[] = [];
 
     for (let i = 0; i < files.length; i++) {
+      if (cancelRef.current) break;
+      
       const file = files[i];
       try {
         const analysis = await analyzeAsset(file, file.type);
         
+        if (cancelRef.current) break;
+
         const asset: Asset = {
           id: Math.random().toString(36).substr(2, 9),
           originalName: file.name,
@@ -68,16 +79,25 @@ const App: React.FC = () => {
       }
     }
 
-    setAssets(prev => [...prev, ...newAssets]);
+    if (!cancelRef.current) {
+      setAssets(prev => [...prev, ...newAssets]);
+    }
+    
     setIsUploading(false);
+    setIsMinimized(false);
   };
 
   const createStudyFromAssets = async () => {
     if (assets.length === 0) return;
     setIsUploading(true);
+    setIsMinimized(false);
+    cancelRef.current = false;
+
     try {
       const newStudy = await generateCaseStudy(assets.slice(-3), "Synthesize recent progress into a technical log.");
       
+      if (cancelRef.current) return;
+
       const fullStudy: CaseStudy = {
         id: Math.random().toString(36).substr(2, 9),
         title: newStudy.title || 'UNTITLED CONTRIBUTION',
@@ -100,6 +120,7 @@ const App: React.FC = () => {
       console.error("Case study generation failed", err);
     } finally {
       setIsUploading(false);
+      setIsMinimized(false);
     }
   };
 
@@ -112,6 +133,12 @@ const App: React.FC = () => {
   const clearDatabase = () => {
     localStorage.removeItem('devsigner_data_v3');
     window.location.reload();
+  };
+
+  const cancelWorkflow = () => {
+    cancelRef.current = true;
+    setIsUploading(false);
+    setIsMinimized(false);
   };
 
   return (
@@ -160,28 +187,101 @@ const App: React.FC = () => {
       </main>
 
       {/* Persistent HUD / Global Status */}
-      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] pointer-events-none">
+      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+        
+        {/* Minimized Processing Status */}
+        {isUploading && isMinimized && (
+          <div className="bg-[#FFF500] brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in slide-in-from-right-full">
+            <div className="bg-black p-2">
+              <Icon name="Cpu" size={20} className="text-[#FFF500] animate-spin" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-black uppercase italic">AI Processing...</span>
+              <div className="flex gap-2 mt-1">
+                <button 
+                  onClick={() => setIsMinimized(false)}
+                  className="mono text-[9px] font-bold uppercase underline hover:no-underline"
+                >
+                  Expand
+                </button>
+                <span className="text-gray-400">/</span>
+                <button 
+                  onClick={cancelWorkflow}
+                  className="mono text-[9px] font-bold uppercase underline hover:no-underline text-red-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold uppercase italic">
           CPU_LOAD: {isUploading ? '98%' : '2%'} // RAM: 14GB // SYSTEM_ONLINE
         </div>
       </div>
 
       {/* AI Processing Modal */}
-      {isUploading && (
+      {isUploading && !isMinimized && (
         <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-8 backdrop-blur-md">
-            <div className="bg-[#FFF500] brutalist-border p-12 md:p-20 brutalist-shadow text-center max-w-lg">
+            <div className="bg-[#FFF500] brutalist-border p-12 md:p-20 brutalist-shadow text-center max-w-lg relative">
+                
+                {/* Modal Controls */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button 
+                    onClick={() => setIsMinimized(true)}
+                    className="p-2 bg-black text-white hover:bg-zinc-800 transition-colors brutalist-border"
+                    title="Minimize"
+                  >
+                    <Icon name="Minimize2" size={18} />
+                  </button>
+                  <button 
+                    onClick={cancelWorkflow}
+                    className="p-2 bg-red-600 text-white hover:bg-red-700 transition-colors brutalist-border"
+                    title="Cancel Workflow"
+                  >
+                    <Icon name="X" size={18} />
+                  </button>
+                </div>
+
                 <div className="relative inline-block mb-10">
                   <Icon name="Cpu" size={80} className="animate-spin text-black" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-4 h-4 bg-black animate-ping" />
                   </div>
                 </div>
-                <h3 className="text-4xl font-black uppercase mb-4 italic leading-tight">Gemini Thinking...</h3>
-                <div className="space-y-2 mono text-xs font-bold uppercase tracking-widest opacity-70">
-                  <p>Parsing raw artifact data</p>
-                  <p>Synthesizing technical narrative</p>
-                  <p>Calculating impact metrics</p>
-                  <p>Formatting case study structure</p>
+                
+                <div className="mb-4 space-y-1">
+                  <h3 className="text-4xl font-black uppercase italic leading-tight">Gemini Thinking...</h3>
+                  <div className="mono text-[10px] font-bold tracking-widest opacity-60">SYSTEM STATUS: SYNTHESIZING_INTELLIGENCE</div>
+                </div>
+
+                <div className="space-y-2 mono text-xs font-bold uppercase tracking-widest opacity-70 mt-8 text-left max-w-xs mx-auto">
+                  <p className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-black rounded-full animate-pulse" />
+                    Parsing raw artifact data
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-black rounded-full animate-pulse delay-75" />
+                    Synthesizing technical narrative
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-black rounded-full animate-pulse delay-150" />
+                    Calculating impact metrics
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-black rounded-full animate-pulse delay-300" />
+                    Formatting case study structure
+                  </p>
+                </div>
+
+                <div className="mt-12 pt-8 border-t-2 border-black/10">
+                  <button 
+                    onClick={() => setIsMinimized(true)}
+                    className="mono text-xs font-black uppercase underline hover:no-underline"
+                  >
+                    Continue working in background
+                  </button>
                 </div>
             </div>
         </div>
