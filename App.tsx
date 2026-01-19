@@ -11,7 +11,9 @@ import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
 import { ProcessingModal } from './components/ProcessingModal';
 import { ProcessingStatus } from './components/ProcessingStatus';
+import { SystemHud } from './components/SystemHud';
 import { Icon } from './components/Icon';
+import { Toast } from './components/Toast';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
@@ -24,6 +26,7 @@ const App: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const [processingStep, setProcessingStep] = useState<'analyzing' | 'generating' | 'finalizing'>('analyzing');
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -51,7 +54,6 @@ const App: React.FC = () => {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    // Modified: Start minimized to avoid blocking the user's view
     setIsMinimized(true);
     setProcessingStep('analyzing');
     setProcessingProgress(0);
@@ -83,8 +85,9 @@ const App: React.FC = () => {
         };
         newAssets.push(asset);
         setProcessingProgress(((i + 1) / files.length) * 100);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Analysis failed for", file.name, err);
+        setErrorMessage(`Analysis failed for ${file.name}: ${err.message}`);
       }
     }
 
@@ -93,23 +96,29 @@ const App: React.FC = () => {
     }
     
     setIsUploading(false);
-    // Keep it minimized or reset for next flow
     setIsMinimized(true);
   };
 
   const createStudyFromAssets = async () => {
     if (assets.length === 0) return;
     setIsUploading(true);
-    // Modified: Start minimized to ensure the user can still interact with the UI
     setIsMinimized(true);
     setProcessingStep('generating');
     setProcessingProgress(10);
     cancelRef.current = false;
 
+    let progressTimer: any;
+
     try {
-      const progressTimer = setInterval(() => {
-        setProcessingProgress(prev => Math.min(prev + 2, 75));
-      }, 500);
+      // Dynamic progress that slows down as it gets closer to 90
+      progressTimer = setInterval(() => {
+        setProcessingProgress(prev => {
+          if (prev < 60) return prev + 4;
+          if (prev < 80) return prev + 2;
+          if (prev < 90) return prev + 0.5;
+          return prev;
+        });
+      }, 600);
 
       const newStudy = await generateCaseStudy(assets.slice(-3), "Synthesize recent progress into a technical log.", isThinkingEnabled);
       clearInterval(progressTimer);
@@ -117,7 +126,7 @@ const App: React.FC = () => {
       if (cancelRef.current) return;
 
       setProcessingStep('finalizing');
-      setProcessingProgress(90);
+      setProcessingProgress(95);
 
       const fullStudy: CaseStudy = {
         id: Math.random().toString(36).substr(2, 9),
@@ -143,8 +152,10 @@ const App: React.FC = () => {
         setIsMinimized(true);
         setIsUploadOpen(false);
       }, 500);
-    } catch (err) {
+    } catch (err: any) {
+      if (progressTimer) clearInterval(progressTimer);
       console.error("Case study generation failed", err);
+      setErrorMessage(`Synthesis failed: ${err.message}`);
       setIsUploading(false);
     }
   };
@@ -222,6 +233,9 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* Persistent HUD / Global Status */}
+      <SystemHud isUploading={isUploading} />
+
       {/* Floating Status Indicator (Visible when processing is minimized) */}
       <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
         {isUploading && isMinimized && !isUploadOpen && (
@@ -243,6 +257,15 @@ const App: React.FC = () => {
           progress={processingProgress}
           onMinimize={() => setIsMinimized(true)}
           onCancel={cancelWorkflow}
+        />
+      )}
+
+      {/* Error Toasts */}
+      {errorMessage && (
+        <Toast 
+          message={errorMessage} 
+          onClose={() => setErrorMessage(null)} 
+          type="error"
         />
       )}
     </div>
