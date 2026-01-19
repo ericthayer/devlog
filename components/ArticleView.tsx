@@ -7,9 +7,10 @@ import { CaseStudy } from '../types';
 interface ArticleViewProps {
   study: CaseStudy;
   onBack: () => void;
+  onEdit: (study: CaseStudy) => void;
 }
 
-export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack }) => {
+export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack, onEdit }) => {
   return (
     <div className="animate-in slide-in-from-right-12 duration-500 bg-[#FDFDFD] min-h-screen">
       <div className="sticky top-0 bg-white border-b-4 border-black p-4 z-40 flex justify-between items-center md:px-12">
@@ -18,7 +19,14 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ study, onBack }) => {
           Feed
         </button>
         <div className="flex gap-3">
-          <BrutalistButton variant="secondary" className="px-5 py-2 text-xs">Edit Draft</BrutalistButton>
+          <BrutalistButton 
+            variant="secondary" 
+            className="px-5 py-2 text-xs"
+            onClick={() => onEdit(study)}
+          >
+            <Icon name="Edit3" size={14} />
+            Edit_Study
+          </BrutalistButton>
           <BrutalistButton className="px-5 py-2 text-xs">Publish_Log</BrutalistButton>
         </div>
       </div>

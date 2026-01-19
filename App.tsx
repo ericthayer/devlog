@@ -7,6 +7,7 @@ import { TimelineView } from './components/TimelineView';
 import { UploadView } from './components/UploadView';
 import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
+import { EditorView } from './components/EditorView';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
@@ -19,7 +20,7 @@ const App: React.FC = () => {
 
   // Initialize from LocalStorage or Load Demo Data
   useEffect(() => {
-    const saved = localStorage.getItem('devsigner_data_v2');
+    const saved = localStorage.getItem('devsigner_data_v3');
     if (saved) {
       const parsed = JSON.parse(saved);
       setCaseStudies(parsed.caseStudies || []);
@@ -33,7 +34,7 @@ const App: React.FC = () => {
 
   // Save to LocalStorage
   useEffect(() => {
-    localStorage.setItem('devsigner_data_v2', JSON.stringify({ caseStudies, assets }));
+    localStorage.setItem('devsigner_data_v3', JSON.stringify({ caseStudies, assets }));
   }, [caseStudies, assets]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,14 +103,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveStudy = (updatedStudy: CaseStudy) => {
+    setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
+    setSelectedArticle(updatedStudy);
+    setView('article');
+  };
+
   const clearDatabase = () => {
-    localStorage.removeItem('devsigner_data_v2');
+    localStorage.removeItem('devsigner_data_v3');
     window.location.reload();
   };
 
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:pl-64 flex flex-col bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black">
-      <Navigation activeView={view} onViewChange={(v) => { setView(v); setSelectedArticle(null); }} />
+      <Navigation activeView={view === 'editor' ? 'article' : view} onViewChange={(v) => { setView(v); setSelectedArticle(null); }} />
       
       <main className="flex-1 overflow-y-auto no-scrollbar">
         {view === 'timeline' && (
@@ -135,6 +142,15 @@ const App: React.FC = () => {
           <ArticleView 
             study={selectedArticle} 
             onBack={() => setView('timeline')} 
+            onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
+          />
+        )}
+
+        {view === 'editor' && selectedArticle && (
+          <EditorView 
+            study={selectedArticle}
+            onSave={handleSaveStudy}
+            onCancel={() => setView('article')}
           />
         )}
 
