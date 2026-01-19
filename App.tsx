@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import JSZip from 'jszip';
 import { AppView, CaseStudy, Asset, UserPreferences } from './types';
 import { Navigation } from './components/Navigation';
 import { AppHeader } from './components/AppHeader';
@@ -14,6 +15,7 @@ import { ProcessingStatus } from './components/ProcessingStatus';
 import { SystemHud } from './components/SystemHud';
 import { Icon } from './components/Icon';
 import { Toast } from './components/Toast';
+import { ManualAssetModal } from './components/ManualAssetModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
@@ -22,6 +24,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   autoRename: true,
   exportFormat: 'markdown'
 };
+
+const SUPPORTED_UNPACK_EXTENSIONS = ['md', 'js', 'jsx', 'ts', 'tsx', 'css', 'html', 'json', 'txt', 'py', 'go', 'rs', 'svg', 'fig', 'sql'];
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>('timeline');
@@ -32,6 +36,7 @@ const App: React.FC = () => {
   const [isMinimized, setIsMinimized] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,6 +65,45 @@ const App: React.FC = () => {
     localStorage.setItem('devsigner_data_v3', JSON.stringify({ caseStudies, assets, preferences }));
   }, [caseStudies, assets, preferences]);
 
+  const processFile = async (file: File | Blob, name: string, mimeType: string, index: number, total: number): Promise<Asset | null> => {
+    try {
+      let assetData: Partial<Asset> = {};
+      
+      // Convert Blob to File if needed for analyzeAsset
+      const fileToProcess = file instanceof File ? file : new File([file], name, { type: mimeType });
+
+      if (preferences.autoRename) {
+        assetData = await analyzeAsset(fileToProcess, mimeType || 'text/plain', isThinkingEnabled);
+      }
+      
+      if (cancelRef.current) return null;
+
+      const extension = name.split('.').pop() || 'txt';
+      const asset: Asset = {
+        id: Math.random().toString(36).substr(2, 9),
+        originalName: name,
+        aiName: preferences.autoRename 
+          ? `${assetData.topic || 'misc'}-${assetData.type || 'file'}-${assetData.context || 'dev'}-${assetData.variant || 'v1'}-${assetData.version || '1.0'}-${extension}`
+          : name,
+        type: assetData.type || 'unknown',
+        topic: assetData.topic || 'misc',
+        context: assetData.context || 'dev',
+        variant: assetData.variant || 'v1',
+        version: assetData.version || '1.0',
+        fileType: extension,
+        url: (fileToProcess.size < 5000000 && !mimeType.includes('zip')) ? URL.createObjectURL(fileToProcess) : '',
+        size: fileToProcess.size
+      };
+      
+      setProcessingProgress(((index + 1) / total) * 100);
+      return asset;
+    } catch (err: any) {
+      console.error("Analysis failed for", name, err);
+      setErrorMessage(`Analysis failed for ${name}: ${err.message}`);
+      return null;
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -70,46 +114,48 @@ const App: React.FC = () => {
     setProcessingProgress(0);
     cancelRef.current = false;
     
-    const newAssets: Asset[] = [];
+    const assetsToProcess: { file: File | Blob; name: string; type: string }[] = [];
 
+    // Stage files for processing, including ZIP contents
     for (let i = 0; i < files.length; i++) {
-      if (cancelRef.current) break;
-      
       const file = files[i];
-      try {
-        let assetData: Partial<Asset> = {};
-        
-        if (preferences.autoRename) {
-          assetData = await analyzeAsset(file, file.type, isThinkingEnabled);
-        }
-        
-        if (cancelRef.current) break;
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        try {
+          const zip = new JSZip();
+          const contents = await zip.loadAsync(file);
+          const zipFiles = Object.keys(contents.files).filter(fileName => {
+            const ext = fileName.split('.').pop()?.toLowerCase();
+            return !contents.files[fileName].dir && ext && SUPPORTED_UNPACK_EXTENSIONS.includes(ext);
+          });
 
-        const asset: Asset = {
-          id: Math.random().toString(36).substr(2, 9),
-          originalName: file.name,
-          aiName: preferences.autoRename 
-            ? `${assetData.topic || 'misc'}-${assetData.type || 'file'}-${assetData.context || 'dev'}-${assetData.variant || 'v1'}-${assetData.version || '1.0'}-${file.name.split('.').pop()}`
-            : file.name,
-          type: assetData.type || 'unknown',
-          topic: assetData.topic || 'misc',
-          context: assetData.context || 'dev',
-          variant: assetData.variant || 'v1',
-          version: assetData.version || '1.0',
-          fileType: file.name.split('.').pop() || '',
-          url: URL.createObjectURL(file),
-          size: file.size
-        };
-        newAssets.push(asset);
-        setProcessingProgress(((i + 1) / files.length) * 100);
-      } catch (err: any) {
-        console.error("Analysis failed for", file.name, err);
-        setErrorMessage(`Analysis failed for ${file.name}: ${err.message}`);
+          for (const zipFileName of zipFiles) {
+            const zipFile = contents.files[zipFileName];
+            const blob = await zipFile.async('blob');
+            assetsToProcess.push({ 
+              file: blob, 
+              name: zipFileName, 
+              type: zipFileName.split('.').pop() || 'txt' 
+            });
+          }
+        } catch (err) {
+          console.error("ZIP Unpack Failed", err);
+          setErrorMessage(`Archive extraction failed for ${file.name}`);
+        }
+      } else {
+        assetsToProcess.push({ file, name: file.name, type: file.type });
       }
     }
 
+    const processedAssets: Asset[] = [];
+    for (let i = 0; i < assetsToProcess.length; i++) {
+      if (cancelRef.current) break;
+      const item = assetsToProcess[i];
+      const asset = await processFile(item.file, item.name, item.type, i, assetsToProcess.length);
+      if (asset) processedAssets.push(asset);
+    }
+
     if (!cancelRef.current) {
-      setAssets(prev => [...prev, ...newAssets]);
+      setAssets(prev => [...prev, ...processedAssets]);
     }
     
     setIsUploading(false);
@@ -274,6 +320,7 @@ const App: React.FC = () => {
                 onExpand={() => setIsMinimized(false)}
                 onCancel={cancelWorkflow}
                 onAddDemoAssets={(demo) => setAssets(prev => [...prev, ...demo])}
+                onOpenManualModal={() => setIsManualModalOpen(true)}
               />
             ) : isSettingsOpen ? (
               <SettingsView 
@@ -286,7 +333,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+      <div className="fixed top-24 md:top-8 inset-x-0 m-auto w-fit z-[60] flex flex-col items-end gap-3 pointer-events-none">
         {isUploading && isMinimized && !isUploadOpen && !isSettingsOpen && (
           <ProcessingStatus 
             variant="floating"
@@ -305,6 +352,13 @@ const App: React.FC = () => {
           progress={processingProgress}
           onMinimize={() => setIsMinimized(true)}
           onCancel={cancelWorkflow}
+        />
+      )}
+
+      {isManualModalOpen && (
+        <ManualAssetModal 
+          onAdd={(asset) => setAssets(prev => [...prev, asset])}
+          onClose={() => setIsManualModalOpen(false)}
         />
       )}
 

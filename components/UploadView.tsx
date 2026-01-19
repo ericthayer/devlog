@@ -18,6 +18,7 @@ interface UploadViewProps {
   onExpand: () => void;
   onCancel: () => void;
   onAddDemoAssets?: (assets: Asset[]) => void;
+  onOpenManualModal: () => void;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({
@@ -31,7 +32,8 @@ export const UploadView: React.FC<UploadViewProps> = ({
   onCreateStudy,
   onExpand,
   onCancel,
-  onAddDemoAssets
+  onAddDemoAssets,
+  onOpenManualModal
 }) => {
   return (
     <div className="flex flex-col h-full bg-white">
@@ -40,13 +42,23 @@ export const UploadView: React.FC<UploadViewProps> = ({
           <h3 className="text-2xl font-black uppercase italic leading-none">Capture_System</h3>
           <p className="mono text-[8px] font-bold mt-1 opacity-60">READY FOR MULTI-FILE INGESTION</p>
         </div>
-        {assets.length === 0 && !isUploading && (
-          <button 
-            onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
-            className="mono text-[8px] font-black uppercase underline hover:no-underline bg-black text-white px-2 py-1"
-          >
-            Load Demo
-          </button>
+        {!isUploading && (
+          <div className="flex gap-2">
+            <button 
+              onClick={onOpenManualModal}
+              className="mono text-[8px] font-black uppercase underline hover:no-underline bg-zinc-200 text-black px-2 py-1 border border-black"
+            >
+              Manual_Add
+            </button>
+            {assets.length === 0 && (
+              <button 
+                onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
+                className="mono text-[8px] font-black uppercase underline hover:no-underline bg-black text-white px-2 py-1"
+              >
+                Load Demo
+              </button>
+            )}
+          </div>
         )}
       </header>
       
@@ -87,14 +99,14 @@ export const UploadView: React.FC<UploadViewProps> = ({
               multiple 
               onChange={onFileUpload}
               className="absolute inset-0 opacity-0 cursor-pointer z-10"
-              accept="image/*,.pdf,.mp4,.webm,.mov,.fig"
+              accept="image/*,.pdf,.mp4,.webm,.mov,.fig,.zip"
             />
             <div className="group-hover:scale-110 transition-transform duration-300 text-black">
               <Icon name="UploadCloud" size={48} className="mb-2" />
             </div>
             <p className="text-xl font-black uppercase tracking-tight text-center">Drop Artifacts</p>
             <p className="mono text-[8px] mt-2 bg-black text-white px-3 py-0.5 uppercase tracking-widest text-center">
-              SELECT FILES
+              SELECT FILES (ZIP SUPPORTED)
             </p>
           </div>
         )}
