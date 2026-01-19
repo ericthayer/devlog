@@ -4,7 +4,7 @@ import { Asset, CaseStudy } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
-export const analyzeAsset = async (file: File, mimeType: string): Promise<Partial<Asset>> => {
+export const analyzeAsset = async (file: File, mimeType: string, useThinking: boolean = false): Promise<Partial<Asset>> => {
   const reader = new FileReader();
   const base64Data = await new Promise<string>((resolve) => {
     reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -12,7 +12,7 @@ export const analyzeAsset = async (file: File, mimeType: string): Promise<Partia
   });
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
     contents: {
       parts: [
         { inlineData: { data: base64Data, mimeType } },
@@ -21,6 +21,7 @@ export const analyzeAsset = async (file: File, mimeType: string): Promise<Partia
       ]
     },
     config: {
+      ...(useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {}),
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -43,7 +44,7 @@ export const analyzeAsset = async (file: File, mimeType: string): Promise<Partia
   }
 };
 
-export const generateCaseStudy = async (assets: Asset[], contextPrompt: string): Promise<Partial<CaseStudy>> => {
+export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, useThinking: boolean = true): Promise<Partial<CaseStudy>> => {
   const assetInfo = assets.map(a => `- ${a.aiName} (${a.topic}, ${a.context})`).join('\n');
   
   const response = await ai.models.generateContent({
@@ -64,7 +65,7 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string):
     
     Return as a structured JSON object.`,
     config: {
-      thinkingConfig: { thinkingBudget: 32768 },
+      ...(useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {}),
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,

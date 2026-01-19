@@ -8,16 +8,19 @@ import { DEMO_ASSETS } from '../utils/demoData';
 interface UploadViewProps {
   assets: Asset[];
   isUploading: boolean;
+  isThinkingEnabled: boolean;
+  onToggleThinking: () => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAsset: (id: string) => void;
   onCreateStudy: () => void;
-  // Added a way to inject demo assets if needed
   onAddDemoAssets?: (assets: Asset[]) => void;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({
   assets,
   isUploading,
+  isThinkingEnabled,
+  onToggleThinking,
   onFileUpload,
   onRemoveAsset,
   onCreateStudy,
@@ -31,18 +34,36 @@ export const UploadView: React.FC<UploadViewProps> = ({
             <h2 className="text-5xl font-black uppercase italic leading-none">Capture System</h2>
             <p className="mono text-xs font-bold mt-2 opacity-60">READY FOR MULTI-FILE INGESTION // GEMINI_PARSER_ACTIVE</p>
           </div>
-          {assets.length === 0 && (
-            <button 
-              onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
-              className="mono text-[10px] font-black uppercase underline hover:no-underline bg-black text-white px-3 py-1"
-            >
-              Load Demo Samples
-            </button>
-          )}
+          <div className="flex gap-4">
+            {assets.length === 0 && (
+              <button 
+                onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
+                className="mono text-[10px] font-black uppercase underline hover:no-underline bg-black text-white px-3 py-1"
+              >
+                Load Demo Samples
+              </button>
+            )}
+          </div>
         </header>
         
         <div className="space-y-12">
-          {/* Main Dropzone Area */}
+          {/* Thinking Mode Toggle */}
+          <div className="flex items-center justify-between p-6 bg-black text-[#FFF500] brutalist-border">
+            <div className="flex items-center gap-4">
+              <Icon name="BrainCircuit" />
+              <div>
+                <p className="font-black uppercase italic text-sm">DEEP_THINKING_MODE</p>
+                <p className="mono text-[9px] uppercase opacity-60">ENGAGE GEMINI 3 PRO WITH 32K REASONING BUDGET</p>
+              </div>
+            </div>
+            <button 
+              onClick={onToggleThinking}
+              className={`w-14 h-8 brutalist-border relative transition-colors ${isThinkingEnabled ? 'bg-[#FFF500]' : 'bg-zinc-800'}`}
+            >
+              <div className={`absolute top-0.5 w-6 h-6 bg-white brutalist-border transition-all ${isThinkingEnabled ? 'right-0.5' : 'left-0.5'}`} />
+            </button>
+          </div>
+
           <div 
             className="border-4 border-dashed border-black p-12 md:p-20 flex flex-col items-center justify-center bg-gray-50 hover:bg-[#FFF50011] transition-all cursor-pointer relative group"
           >
@@ -62,7 +83,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
             </p>
           </div>
 
-          {/* AI Feature Highlight */}
+           {/* AI Feature Highlight */}
           <div className="bg-zinc-600 brutalist-border text-white p-8 brutalist-shadow flex items-start gap-6">
             <div className="bg-[#FFF500] p-3 text-black shrink-0">
               <Icon name="Cpu" size={32} />
@@ -76,7 +97,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
             </div>
           </div>
 
-          {/* Staged Assets - Responsive Grid */}
+
           {assets.length > 0 && (
             <div className="border-t-4 border-black pt-12 animate-in slide-in-from-bottom-4">
               <div className="flex items-center justify-between mb-8">
