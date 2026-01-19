@@ -19,7 +19,7 @@ export const EditorView: React.FC<EditorViewProps> = ({ study, onSave, onCancel 
   };
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tags = e.target.value.split(',').map(tag => tag.trim().toUpperCase()).filter(t => t !== '');
+    const tags = e.target.value.split(',').map(tag => tag.trim()).filter(t => t !== '');
     setFormData(prev => ({ ...prev, tags }));
   };
 
@@ -28,7 +28,7 @@ export const EditorView: React.FC<EditorViewProps> = ({ study, onSave, onCancel 
     onSave(formData);
   };
 
-  const inputStyles = "w-full p-4 brutalist-border bg-gray-50 mono text-sm font-bold focus:outline-none focus:bg-white uppercase transition-colors";
+  const inputStyles = "w-full p-4 brutalist-border bg-gray-50 mono text-sm font-bold focus:outline-none focus:bg-white transition-colors";
   const labelStyles = "block text-sm font-black uppercase mb-2 italic";
 
   return (

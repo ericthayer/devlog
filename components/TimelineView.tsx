@@ -76,7 +76,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             <input 
               type="text"
               placeholder="SEARCH LOGS / TAGS / PROBLEMS..."
-              className="w-full pl-12 pr-4 py-4 brutalist-border mono text-sm font-bold placeholder:text-gray-400 focus:outline-none focus:bg-white bg-gray-50 uppercase"
+              className="w-full pl-12 pr-4 py-4 brutalist-border mono text-sm font-bold placeholder:text-gray-400 focus:outline-none focus:bg-white bg-gray-50 transition-colors"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

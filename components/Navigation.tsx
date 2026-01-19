@@ -58,8 +58,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
             </button>
           ))}
         </div>
-        <div className="mt-auto p-4 bg-black text-white brutalist-shadow-sm mono text-xs">
-          v1.0.4-BETA<br/>
+        <div className="mt-auto bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic text-xs">
+          v0.1.0-alpha<br/>
           OFFLINE CACHE: OK
         </div>
       </nav>
