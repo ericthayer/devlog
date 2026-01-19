@@ -265,6 +265,7 @@ const App: React.FC = () => {
           activeView={view} 
           isUploadOpen={isUploadOpen}
           isSettingsOpen={isSettingsOpen}
+          hasAssets={assets.length > 0}
           onToggleUpload={toggleUpload}
           onToggleSettings={toggleSettings}
           onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
@@ -334,7 +335,7 @@ const App: React.FC = () => {
       </div>
 
       <div className="fixed top-24 md:top-8 inset-x-0 m-auto w-fit z-[60] flex flex-col items-end gap-3 pointer-events-none">
-        {isUploading && isMinimized && !isUploadOpen && !isSettingsOpen && (
+        {isUploading && isMinimized && !isUploadOpen && (
           <ProcessingStatus 
             variant="floating"
             progress={processingProgress}

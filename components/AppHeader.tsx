@@ -8,6 +8,7 @@ interface AppHeaderProps {
   activeView: AppView;
   isUploadOpen: boolean;
   isSettingsOpen: boolean;
+  hasAssets: boolean;
   onToggleUpload: () => void;
   onToggleSettings: () => void;
   onBack?: () => void;
@@ -17,6 +18,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   activeView, 
   isUploadOpen,
   isSettingsOpen,
+  hasAssets,
   onToggleUpload,
   onToggleSettings,
   onBack 
@@ -65,14 +67,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <Icon name="Settings" size={18} />
         </BrutalistButton>
 
-        <BrutalistButton 
-          variant={isUploadOpen ? 'primary' : 'secondary'} 
-          onClick={onToggleUpload} 
-          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
-        >
-          <Icon name={isUploadOpen ? 'Zap' : 'Zap'} size={18} />
-          {/*<span className="hidden sm:inline">{isUploadOpen ? 'CLOSE' : 'NEW_LOG'}</span>*/}
-        </BrutalistButton>
+        <div className="relative">
+          <BrutalistButton 
+            variant={isUploadOpen ? 'primary' : 'secondary'} 
+            onClick={onToggleUpload} 
+            className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm relative ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
+          >
+            <Icon name="Zap" size={18} />
+          </BrutalistButton>
+          
+          {/* Pulsing Notification Badge */}
+          {hasAssets && !isUploadOpen && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 border-2 border-black"></span>
+            </span>
+          )}
+        </div>
       </div>
     </header>
   );

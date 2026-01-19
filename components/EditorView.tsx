@@ -32,17 +32,17 @@ export const EditorView: React.FC<EditorViewProps> = ({ study, onSave, onCancel 
   const labelStyles = "block text-sm font-black uppercase mb-2 italic";
 
   return (
-    <div className="animate-in fade-in duration-500 bg-[#F9F9F9] min-h-screen">
-      <div className="sticky top-0 bg-white border-b-4 border-black p-4 z-40 flex justify-between items-center md:px-12">
+    <div className="animate-in fade-in duration-500 bg-[#F9F9F9]">
+      <div className="sticky top-0 bg-white border-b-4 border-black p-4 z-40 flex justify-between items-center md:px-6">
         <button onClick={onCancel} className="flex items-center gap-2 font-black uppercase hover:translate-x-[-4px] transition-transform">
           <Icon name="X" />
           Cancel
         </button>
         <div className="flex gap-3">
           <BrutalistButton 
-            variant="primary" 
-            className="px-8 py-2"
+            variant="primary"
             onClick={handleSubmit}
+            className="text-sm !py-3 !px-5 transition-colors brutalist-shadow-sm"
           >
             <Icon name="Save" size={18} />
             Commit_Changes
