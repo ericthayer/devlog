@@ -38,11 +38,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {onBack && (
           <button 
             onClick={onBack} 
-            className="flex !hidden items-center gap-2 font-black uppercase hover:translate-x-[-4px] transition-transform group"
+            className="flex items-center gap-3 font-black uppercase hover:translate-x-[-4px] transition-transform group"
           >
             <div className="bg-black text-white p-2 group-hover:bg-[#FFF500] group-hover:text-black transition-colors brutalist-border">
               <Icon name="ArrowLeft" size={18} />
             </div>
+            <span className="mono text-[10px] font-black hidden sm:inline">Back_Return</span>
           </button>
         )}
         <div>
@@ -76,9 +77,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <Icon name="Zap" size={18} />
           </BrutalistButton>
           
-          {/* Pulsing Notification Badge */}
+          {/* Pulsing Notification Badge - Only shows when assets are ready to submit and drawer is closed */}
           {hasAssets && !isUploadOpen && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50 pointer-events-none">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 border-2 border-black"></span>
             </span>
