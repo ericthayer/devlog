@@ -17,16 +17,16 @@ export const DEMO_ASSETS: Asset[] = [
   },
   {
     id: 'a2',
-    originalName: 'auth-flow.sketch',
-    aiName: 'auth-ux-flow-desktop-v1-sketch',
+    originalName: 'auth-interaction-recording.mp4',
+    aiName: 'auth-ux-interaction-v1-mp4',
     type: 'UX',
     topic: 'auth',
-    context: 'dashboard',
-    variant: 'desktop',
+    context: 'mobile',
+    variant: 'interaction',
     version: '1.0',
-    fileType: 'sketch',
-    url: '',
-    size: 204800
+    fileType: 'mp4',
+    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+    size: 10485760
   }
 ];
 
@@ -43,9 +43,9 @@ export const DEMO_STUDIES: CaseStudy[] = [
     outcome: 'Increased daily active usage by 25% and reduced the average time-to-action from 12 seconds to 4 seconds through optimized visual scanning paths.',
     nextSteps: 'Explore real-time data streaming optimizations and dark mode specialized contrast ratios.',
     seoMetadata: {
-      title: 'Neural Dashboard Case Study',
-      description: 'Optimizing data density for power users.',
-      keywords: ['ux', 'dashboard', 'brutalist']
+      title: 'Neural Dashboard Case Study Optimization Record',
+      description: 'Optimizing data density for power users in AI-driven interfaces.',
+      keywords: ['UX_DESIGN', 'FE_DEV', 'BRUTALIST', 'AI_DENSITY', 'HIERARCHY', 'DASHBOARD_V2', 'SYSTEM_ARCHITECTURE']
     }
   },
   {
@@ -60,9 +60,9 @@ export const DEMO_STUDIES: CaseStudy[] = [
     outcome: 'Completed prototype phase with positive initial user feedback on clarity. Awaiting full integration.',
     nextSteps: 'A/B test the SMS vs Authenticator app messaging.',
     seoMetadata: {
-      title: 'Auth Flow Optimization',
-      description: 'Streamlining secure entry.',
-      keywords: ['auth', 'security', 'conversion']
+      title: 'Auth Flow Optimization & Biometric Integration',
+      description: 'Streamlining secure entry and reducing 2FA friction.',
+      keywords: ['SECURITY_UX', 'AUTH_SYSTEMS', 'CONVERSION_RATE', 'FLOW_OPTIMIZATION', 'MOBILE_FIRST']
     }
   }
 ];

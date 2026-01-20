@@ -16,8 +16,12 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
       reader.readAsDataURL(file);
     });
 
+    const modelName = useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+    
+    // Guidelines: Flash thinking budget max is 24576, Pro is 32768.
+    // Guidelines: MUST set maxOutputTokens when setting thinkingBudget.
     const response = await ai.models.generateContent({
-      model: useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
+      model: modelName,
       contents: {
         parts: [
           { inlineData: { data: base64Data, mimeType } },
@@ -27,7 +31,12 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
         ]
       },
       config: {
-        ...(useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {}),
+        ...(useThinking 
+          ? { 
+              thinkingConfig: { thinkingBudget: 16384 },
+              maxOutputTokens: 20480 // budget + overhead for response
+            } 
+          : {}),
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
@@ -50,6 +59,11 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
     return JSON.parse(response.text);
   } catch (e: any) {
     console.error("Failed to analyze asset", e);
+    // If it was a thinking error, retry without thinking as a fallback
+    if (useThinking) {
+      console.warn("Retrying analysis without thinking mode...");
+      return analyzeAsset(file, mimeType, false);
+    }
     throw new Error(e.message || "Failed to analyze file metadata");
   }
 };
@@ -60,6 +74,8 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     
     const assetInfo = assets.map(a => `- ${a.aiName} (${a.topic}, ${a.context})`).join('\n');
     
+    // Using gemini-3-pro-preview for complex synthesis tasks.
+    // Pairing thinkingBudget with maxOutputTokens to prevent 500 Internal Errors.
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: {
@@ -87,7 +103,12 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
         ]
       },
       config: {
-        ...(useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {}),
+        ...(useThinking 
+          ? { 
+              thinkingConfig: { thinkingBudget: 24576 },
+              maxOutputTokens: 32768 
+            } 
+          : {}),
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
@@ -119,6 +140,17 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     return JSON.parse(response.text);
   } catch (e: any) {
     console.error("Failed to generate case study", e);
+    // Fallback: If Pro/Thinking fails with 500, try Flash without thinking for robustness
+    if (useThinking) {
+      console.warn("Retrying synthesis with Flash fallback...");
+      const aiFallback = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const fallbackResponse = await aiFallback.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Based on these design artifacts:\n${assets.map(a => a.aiName).join(', ')}\n\nCreate a case study JSON with title, problem, approach, outcome, nextSteps, tags, and seoMetadata (title, description, keywords).`,
+        config: { responseMimeType: 'application/json' }
+      });
+      if (fallbackResponse.text) return JSON.parse(fallbackResponse.text);
+    }
     throw new Error(e.message || "Failed to synthesize case study content");
   }
 };
