@@ -63,7 +63,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           variant={isSettingsOpen ? 'primary' : 'secondary'} 
           onClick={onToggleSettings}
           title="Global Settings"
-          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isSettingsOpen ? 'bg-amber-300' : ''}`}
+          className={`text-sm py-2 px-6 hover:brutalist-shadow-active hover:-translate-y-1 transition-all brutalist-shadow-sm ${isSettingsOpen ? 'bg-amber-300' : ''}`}
         >
           <Icon name="Settings" size={24} />
         </BrutalistButton>
@@ -72,7 +72,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <BrutalistButton 
             variant={isUploadOpen ? 'primary' : 'secondary'} 
             onClick={onToggleUpload} 
-            className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm relative ${isUploadOpen ? 'bg-amber-300' : ''}`}
+            className={`text-sm py-2 px-6 hover:brutalist-shadow-active hover:-translate-y-1 transition-all brutalist-shadow-sm relative ${isUploadOpen ? 'bg-amber-300' : ''}`}
           >
             <Icon name="Zap" size={24} />
           </BrutalistButton>

@@ -246,6 +246,10 @@ const App: React.FC = () => {
     setPreferences(prev => ({ ...prev, ...newPrefs }));
   };
 
+  const handleClearAssets = () => {
+    setAssets([]);
+  };
+
   return (
     <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black overflow-hidden ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
       <Navigation
@@ -315,6 +319,7 @@ const App: React.FC = () => {
                 onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
                 onFileUpload={handleFileUpload}
                 onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
+                onClearAssets={handleClearAssets}
                 onCreateStudy={createStudyFromAssets}
                 onExpand={() => setIsMinimized(false)}
                 onCancel={cancelWorkflow}

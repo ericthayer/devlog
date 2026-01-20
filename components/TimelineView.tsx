@@ -144,7 +144,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               <div className="p-8 md:p-10 flex-1 flex flex-col">
                 <div className="flex justify-between items-center mb-8">
                   <span className={`px-4 py-1.5 brutalist-border text-[10px] font-black uppercase italic ${
-                    study.status === 'published' ? 'brutalist-bg-success text-black' : 'bg-amber-300 text-black'
+                    study.status === 'published' ? 'brutalist-bg-success text-black' : 'brutalist-bg-accent text-black'
                   }`}>
                     {study.status}
                   </span>

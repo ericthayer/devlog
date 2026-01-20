@@ -14,6 +14,7 @@ interface UploadViewProps {
   onToggleThinking: () => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAsset: (id: string) => void;
+  onClearAssets: () => void;
   onCreateStudy: () => void;
   onExpand: () => void;
   onCancel: () => void;
@@ -29,6 +30,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
   onToggleThinking,
   onFileUpload,
   onRemoveAsset,
+  onClearAssets,
   onCreateStudy,
   onExpand,
   onCancel,
@@ -37,36 +39,38 @@ export const UploadView: React.FC<UploadViewProps> = ({
 }) => {
   return (
     <div className="flex flex-col h-full bg-white">
-      <header className="p-6 border-b-4 border-black bg-white flex items-center justify-between">
+      <header className="p-6 border-b-4 border-black bg-white flex flex-wrap gap-4 items-center justify-between">
         <div>
           <h3 className="text-2xl font-black uppercase italic leading-none">Capture_System</h3>
-          <p className="mono text-[8px] font-bold mt-1 opacity-60">READY FOR MULTI-FILE INGESTION</p>
+          <p className="mono text-[10px] font-bold mt-1 opacity-60">READY FOR MULTI-FILE INGESTION</p>
         </div>
         {!isUploading && (
           <div className="flex gap-2 items-center">
             {assets.length > 0 && (
               <button 
                 onClick={onCreateStudy}
-                className="mono text-[8px] font-black uppercase bg-amber-300 text-black px-2 py-1 border border-black flex items-center gap-1 hover:bg-black hover:text-amber-300 transition-colors animate-in fade-in zoom-in duration-300"
+                className="mono text-[11px] font-black uppercase bg-amber-300 text-black px-3 py-1.5 min-h-[32px] !border-2 border-black flex items-center gap-1.5 hover:bg-black hover:text-amber-300 transition-all active:translate-y-0.5 animate-in fade-in zoom-in duration-300"
               >
-                <Icon name="Zap" size={10} />
-                Generate_Log
+                <Icon name="Zap" size={16} />
+                Generate
               </button>
             )}
-            <button 
-              onClick={onOpenManualModal}
-              className="mono text-[8px] font-black uppercase underline hover:no-underline bg-zinc-200 text-black px-2 py-1 border border-black"
-            >
-              Manual_Add
-            </button>
             {assets.length === 0 && (
               <button 
                 onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
-                className="mono text-[8px] font-black uppercase underline hover:no-underline bg-black text-white px-2 py-1"
+                className="mono text-[11px] min-h-[32px] font-black uppercase hover:underline bg-black text-white px-2 py-1 flex items-center gap-1.5"
               >
-                Load Demo
+              
+                Load_Demo
               </button>
             )}
+            {/* Add Asset */}
+            <button 
+              onClick={onOpenManualModal}
+              className="mono text-[11px] font-black uppercase hover:underline bg-zinc-200 hover:bg-zinc-300 text-black px-2 py-1 !border-2 border-black min-h-[32px] flex items-center gap-1"
+            >
+            <Icon name="Plus" size={18} />
+            </button>
           </div>
         )}
       </header>
@@ -112,22 +116,23 @@ export const UploadView: React.FC<UploadViewProps> = ({
               <Icon name="UploadCloud" size={48} className="mb-2" />
             </div>
             <p className="text-xl font-black uppercase tracking-tight text-center">Drop Artifacts</p>
-            <p className="mono text-[8px] mt-2 bg-black text-white px-3 py-0.5 uppercase tracking-widest text-center">
+            <p className="mono text-[11px] mt-2 bg-black text-white px-3 py-0.5 uppercase tracking-widest text-center">
               SELECT FILES (ZIP SUPPORTED)
             </p>
           </div>
         )}
-
+        {/* Clear Button */}
         {assets.length > 0 && (
           <div className="space-y-6 animate-in slide-in-from-bottom-2">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black uppercase italic">Staged Pipeline ({assets.length})</h3>
               {!isUploading && (
                 <button 
-                  onClick={() => assets.forEach(a => onRemoveAsset(a.id))}
-                  className="mono text-[8px] font-black uppercase text-red-600 hover:underline"
+                  onClick={onClearAssets}
+                  className="mono text-[11px] font-black uppercase bg-zinc-200 text-black px-2 py-1 !border-2 border-black hover:underline hover:bg-zinc-300 flex items-center gap-1.5"
                 >
-                  Clear
+                <Icon name="Delete" size={20} />
+                 Clear
                 </button>
               )}
             </div>
@@ -137,7 +142,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
                 <div key={asset.id} className="group brutalist-border bg-white hover:brutalist-shadow-sm transition-all flex flex-col">
                   <div className="aspect-video bg-gray-100 border-b-2 border-black flex items-center justify-center relative overflow-hidden">
                     {asset.url && asset.fileType.match(/(jpg|jpeg|png|webp|gif)/i) ? (
-                      <img src={asset.url} alt={asset.aiName} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                      <img src={asset.url} alt={asset.aiName} className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 transition-all" />
                     ) : asset.url && asset.fileType.match(/(mp4|webm|mov)/i) ? (
                       <video 
                         src={`${asset.url}#t=0.5`} 
@@ -145,27 +150,30 @@ export const UploadView: React.FC<UploadViewProps> = ({
                         muted
                         playsInline
                         preload="metadata"
+                        onMouseEnter={(e) => e.currentTarget.play()}
+                        onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0.5; }}
                       />
-                    ) : asset.fileType.match(/(mp4|webm|mov)/i) ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <Icon name="Video" size={24} className="opacity-40" />
-                        <span className="mono text-[8px] font-bold opacity-40 uppercase">VIDEO</span>
-                      </div>
                     ) : (
-                      <Icon name="FileCode" size={32} className="opacity-20" />
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="bg-black/5 p-4 rounded-full group-hover:bg-amber-300 transition-colors">
+                          <Icon name={asset.fileType.match(/(mp4|webm|mov)/i) ? 'Video' : 'FileCode'} size={32} className="opacity-40" />
+                        </div>
+                        <span className="mono text-[8px] font-black opacity-40 uppercase">{asset.fileType} artifact detected</span>
+                      </div>
                     )}
-                    <div className="absolute top-1 right-1 bg-black text-amber-300 px-1 py-0.5 text-[7px] font-bold uppercase mono">
+                    <div className="absolute top-2 right-2 bg-black text-amber-300 px-2 py-0.5 text-[8px] font-bold uppercase mono border border-black/20">
                       {asset.fileType}
                     </div>
                   </div>
                   <div className="p-3">
                     <p className="mono text-[9px] font-black break-all leading-tight mb-1 uppercase line-clamp-1">{asset.aiName}</p>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-dotted border-black">
-                      <span className="text-[8px] font-black bg-gray-100 px-2 py-0.5 border border-black uppercase">{asset.topic}</span>
+                      <span className="text-[8px] font-black bg-zinc-100 px-2 py-0.5 border border-black uppercase">{asset.topic}</span>
                       {!isUploading && (
                         <button 
                           onClick={() => onRemoveAsset(asset.id)}
-                          className="text-red-500 hover:scale-110 transition-transform"
+                          className="text-red-500 hover:scale-110 transition-transform p-1"
+                          aria-label="Remove asset"
                         >
                           <Icon name="Trash2" size={14} />
                         </button>
@@ -183,12 +191,12 @@ export const UploadView: React.FC<UploadViewProps> = ({
         <div className="p-6 border-t-4 border-black bg-white sticky bottom-0">
           <BrutalistButton 
             fullWidth 
-            className="text-lg py-4 brutalist-shadow-active" 
+            className="text-lg py-6 brutalist-shadow" 
             onClick={onCreateStudy}
             disabled={isUploading}
           >
-            <Icon name="Zap" size={18} className={isUploading ? 'animate-pulse' : ''} />
-            {isUploading ? 'SYNTHESIZING...' : 'GENERATE_LOG'}
+            <Icon name="Zap" size={24} className={isUploading ? 'animate-pulse' : ''} />
+            {isUploading ? 'BUILDING...' : 'GENERATE_LOG'}
           </BrutalistButton>
         </div>
       )}

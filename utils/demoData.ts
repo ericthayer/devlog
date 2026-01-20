@@ -4,15 +4,15 @@ import { CaseStudy, Asset } from '../types';
 export const DEMO_ASSETS: Asset[] = [
   {
     id: 'a1',
-    originalName: 'hero-section-final.png',
-    aiName: 'landing-ui-hero-v2-final-png',
+    originalName: 'payment-card.png',
+    aiName: 'payment-card-example-v01.png',
     type: 'UI',
     topic: 'landing',
     context: 'marketing',
     variant: 'v2',
     version: '2.1',
     fileType: 'png',
-    url: 'https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&q=80&w=400',
+    url: 'https://assets.codepen.io/97621/fintech-hero-img.png?format=webp',
     size: 102400
   },
   {

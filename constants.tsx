@@ -11,4 +11,4 @@ export const BRUTALIST_THEME = {
   }
 };
 
-export const NAMING_CONVENTION_TEMPLATE = '[topic]-[type]-[context]-[variant]-[version]-[filetype]';
+export const NAMING_CONVENTION_TEMPLATE = '[topic]-[type]-[context]-[variant]-[version].[filetype]';

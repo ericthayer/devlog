@@ -46,7 +46,7 @@ export const ManualAssetModal: React.FC<ManualAssetModalProps> = ({ onAdd, onClo
       <div className="bg-white brutalist-border p-8 brutalist-shadow max-w-md w-full relative">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-zinc-100 transition-colors brutalist-border"
+          className="absolute top-4 right-4 p-2 bg-zinc-200 hover:bg-zinc-300 transition-colors brutalist-border"
         >
           <Icon name="X" size={16} />
         </button>
