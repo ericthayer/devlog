@@ -79,6 +79,7 @@ const App: React.FC = () => {
       if (cancelRef.current) return null;
 
       const extension = name.split('.').pop() || 'txt';
+      // Increased limit to 30MB to better support video thumbnails
       const asset: Asset = {
         id: Math.random().toString(36).substr(2, 9),
         originalName: name,
@@ -91,7 +92,7 @@ const App: React.FC = () => {
         variant: assetData.variant || 'v1',
         version: assetData.version || '1.0',
         fileType: extension,
-        url: (fileToProcess.size < 5000000 && !mimeType.includes('zip')) ? URL.createObjectURL(fileToProcess) : '',
+        url: (fileToProcess.size < 30000000 && !mimeType.includes('zip')) ? URL.createObjectURL(fileToProcess) : '',
         size: fileToProcess.size
       };
       

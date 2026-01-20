@@ -131,6 +131,14 @@ export const UploadView: React.FC<UploadViewProps> = ({
                   <div className="aspect-video bg-gray-100 border-b-2 border-black flex items-center justify-center relative overflow-hidden">
                     {asset.url && asset.fileType.match(/(jpg|jpeg|png|webp|gif)/i) ? (
                       <img src={asset.url} alt={asset.aiName} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                    ) : asset.url && asset.fileType.match(/(mp4|webm|mov)/i) ? (
+                      <video 
+                        src={`${asset.url}#t=0.5`} 
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
                     ) : asset.fileType.match(/(mp4|webm|mov)/i) ? (
                       <div className="flex flex-col items-center gap-1">
                         <Icon name="Video" size={24} className="opacity-40" />
