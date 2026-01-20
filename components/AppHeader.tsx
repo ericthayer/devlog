@@ -25,7 +25,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const getViewTitle = () => {
     switch (activeView) {
-      case 'timeline': return 'Contributions';
+      case 'timeline': return 'Thayer';
       case 'article': return 'Contribution_Detail';
       case 'editor': return 'Editor_Core';
       default: return 'System_Node';
