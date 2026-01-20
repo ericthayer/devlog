@@ -15,7 +15,7 @@ export const BrutalistButton: React.FC<BrutalistButtonProps> = ({
 }) => {
   const baseStyles = "brutalist-border brutalist-shadow active:brutalist-shadow-active transition-all duration-75 px-6 py-3 font-bold uppercase tracking-wider flex items-center justify-center gap-2";
   const variants = {
-    primary: "bg-[#FFF500] hover:bg-[#e6dd00]",
+    primary: "bg-amber-300 hover:bg-amber-400",
     secondary: "bg-white hover:bg-gray-100",
     danger: "bg-red-500 text-white hover:bg-red-600",
   };

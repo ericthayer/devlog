@@ -69,7 +69,6 @@ const App: React.FC = () => {
     try {
       let assetData: Partial<Asset> = {};
       
-      // Convert Blob to File if needed for analyzeAsset
       const fileToProcess = file instanceof File ? file : new File([file], name, { type: mimeType });
 
       if (preferences.autoRename) {
@@ -79,7 +78,6 @@ const App: React.FC = () => {
       if (cancelRef.current) return null;
 
       const extension = name.split('.').pop() || 'txt';
-      // Increased limit to 30MB to better support video thumbnails
       const asset: Asset = {
         id: Math.random().toString(36).substr(2, 9),
         originalName: name,
@@ -117,7 +115,6 @@ const App: React.FC = () => {
     
     const assetsToProcess: { file: File | Blob; name: string; type: string }[] = [];
 
-    // Stage files for processing, including ZIP contents
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.name.toLowerCase().endsWith('.zip')) {
@@ -250,7 +247,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-[#FFF500] selection:text-black overflow-hidden ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
+    <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black overflow-hidden ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
       <Navigation
         activeView={view === 'editor' ? 'article' : view} 
         onViewChange={(v) => { 
@@ -300,7 +297,7 @@ const App: React.FC = () => {
               )}
 
               <div className={`flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white': ''}`}>
-                <div className="bg-zinc-600 text-[#FFF500] p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
+                <div className="bg-zinc-600 text-amber-300 p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
                   v1.0.0-alpha // OFFLINE CACHE: OK
                 </div>                        
                 <SystemHud isUploading={isUploading} />

@@ -18,16 +18,13 @@ export const LazyArtifact: React.FC<LazyArtifactProps> = ({ artifact }) => {
   useEffect(() => {
     if (!isVideo || !videoRef.current || !containerRef.current) return;
 
-    // Use IntersectionObserver to lazy load and auto-play/pause videos based on visibility
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             if (videoRef.current) {
               videoRef.current.preload = "auto";
-              videoRef.current.play().catch(() => {
-                // Autoplay might be blocked by browser policy until user interaction
-              });
+              videoRef.current.play().catch(() => {});
             }
           } else {
             if (videoRef.current) {
@@ -48,7 +45,6 @@ export const LazyArtifact: React.FC<LazyArtifactProps> = ({ artifact }) => {
       ref={containerRef}
       className="aspect-video bg-zinc-100 flex items-center justify-center relative border-b-4 border-black overflow-hidden group/media"
     >
-      {/* Visual Loading Placeholder */}
       {!isLoaded && (artifact.url) && (
         <div className="absolute inset-0 bg-zinc-200 animate-pulse z-10 flex items-center justify-center">
           <Icon name="Loader2" size={24} className="animate-spin text-black/20" />

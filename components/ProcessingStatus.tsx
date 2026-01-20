@@ -16,13 +16,13 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
   variant = 'floating'
 }) => {
   return (
-    <div className={`bg-[#FFF500] brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in ${
+    <div className={`bg-amber-300 brutalist-border p-4 brutalist-shadow-sm flex items-center gap-4 pointer-events-auto animate-in ${
       variant === 'floating' 
         ? 'slide-in-from-bottom-full md:slide-in-from-right-full' 
         : 'fade-in'
     }`}>
       <div className="bg-black p-2">
-        <Icon name="Cpu" size={24} className="text-[#FFF500] animate-spin" />
+        <Icon name="Cpu" size={24} className="text-amber-300 animate-spin" />
       </div>
       <div className="flex flex-col min-w-[160px]">
         <div className="flex justify-between items-end mb-1">

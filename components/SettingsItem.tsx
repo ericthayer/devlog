@@ -14,7 +14,7 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({ icon, label, descrip
   return (
     <div className="flex items-center justify-between p-4 brutalist-border bg-white hover:bg-zinc-50 transition-colors group">
       <div className="flex items-center gap-4">
-        <div className="bg-black text-[#FFF500] p-2 brutalist-border">
+        <div className="bg-black text-amber-300 p-2 brutalist-border">
           <Icon name={icon} size={18} />
         </div>
         <div>

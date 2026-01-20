@@ -18,7 +18,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'error', onClose, 
   const variants = {
     error: "bg-red-500 text-white",
     success: "bg-green-500 text-white",
-    info: "bg-[#FFF500] text-black",
+    info: "bg-amber-300 text-black",
   };
 
   const icons = {

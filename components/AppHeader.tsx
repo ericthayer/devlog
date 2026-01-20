@@ -40,7 +40,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             onClick={onBack} 
             className="hidden items-center gap-3 font-black uppercase hover:translate-x-[-4px] transition-transform group"
           >
-            <div className="bg-black text-white p-2 group-hover:bg-[#FFF500] group-hover:text-black transition-colors brutalist-border">
+            <div className="bg-black text-white p-2 group-hover:bg-amber-300 group-hover:text-black transition-colors brutalist-border">
               <Icon name="ArrowLeft" size={18} />
             </div>
             <span className="mono text-[10px] font-black hidden sm:inline">Back_Return</span>
@@ -51,7 +51,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             {getViewTitle()}
           </h2>
           <div className="flex gap-2 mt-1">
-            <span className="mono text-[8px] font-bold bg-black text-[#FFF500] px-1.5 py-0.5 uppercase tracking-widest">
+            <span className="mono text-[8px] font-bold bg-black text-amber-300 px-1.5 py-0.5 uppercase tracking-widest">
               SECURE_LINK: {activeView.toUpperCase()}
             </span>
           </div>
@@ -63,25 +63,24 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           variant={isSettingsOpen ? 'primary' : 'secondary'} 
           onClick={onToggleSettings}
           title="Global Settings"
-          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isSettingsOpen ? 'bg-[#FFF500]' : ''}`}
+          className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm ${isSettingsOpen ? 'bg-amber-300' : ''}`}
         >
-          <Icon name="Settings" size={18} />
+          <Icon name="Settings" size={24} />
         </BrutalistButton>
 
         <div className="relative">
           <BrutalistButton 
             variant={isUploadOpen ? 'primary' : 'secondary'} 
             onClick={onToggleUpload} 
-            className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm relative ${isUploadOpen ? 'bg-[#FFF500]' : ''}`}
+            className={`text-sm py-2 px-6 transition-colors brutalist-shadow-sm relative ${isUploadOpen ? 'bg-amber-300' : ''}`}
           >
-            <Icon name="Zap" size={18} />
+            <Icon name="Zap" size={24} />
           </BrutalistButton>
           
-          {/* Pulsing Notification Badge - Only shows when assets are ready to submit and drawer is closed */}
           {hasAssets && !isUploadOpen && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50 pointer-events-none">
+            <span className="absolute -top-2 -right-2 flex h-6 w-6 z-50 pointer-events-none">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 border-2 border-black"></span>
+              <span className="relative inline-flex h-6 w-6 brutalist-bg-highlight border-[3px] border-black"></span>
             </span>
           )}
         </div>

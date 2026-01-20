@@ -25,7 +25,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               activeView === item.id ? 'text-[#000]' : 'text-gray-400'
             }`}
           >
-            <div className={`${activeView === item.id ? 'bg-[#FFF500] p-1 brutalist-border rounded-lg' : ''}`}>
+            <div className={`${activeView === item.id ? 'bg-amber-300 p-1 brutalist-border rounded-lg' : ''}`}>
               <Icon name={item.icon} size={24} />
             </div>
             <span className="text-[10px] font-bold uppercase mono">{item.label}</span>
@@ -47,7 +47,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               onClick={() => onViewChange(item.id)}
               className={`flex items-center gap-4 px-4 py-3 brutalist-border text-lg font-bold uppercase transition-all ${
                 activeView === item.id || (activeView === 'article' && item.id === 'timeline')
-                ? 'bg-[#FFF500] brutalist-shadow' 
+                ? 'bg-amber-300 brutalist-shadow' 
                 : 'hover:bg-gray-50'
               }`}
             >

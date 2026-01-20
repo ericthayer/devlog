@@ -130,7 +130,7 @@ export const EditorView: React.FC<EditorViewProps> = ({ study, onSave, onCancel 
         </div>
 
         <div className="bg-black text-white p-8 brutalist-shadow-sm flex items-start gap-4 mt-12">
-            <Icon name="AlertTriangle" size={32} className="text-[#FFF500] shrink-0" />
+            <Icon name="AlertTriangle" size={32} className="text-amber-300 shrink-0" />
             <div>
               <h4 className="font-black text-xl uppercase mb-1">Integrity Check</h4>
               <p className="mono text-xs opacity-60 leading-relaxed uppercase">

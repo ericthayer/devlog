@@ -30,8 +30,7 @@ export const ProcessingModal: React.FC<ProcessingModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-8 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-[#FFF500] brutalist-border p-12 md:p-20 brutalist-shadow text-center max-w-xl w-full relative">
-        {/* Modal Controls */}
+      <div className="bg-amber-300 brutalist-border p-12 md:p-20 brutalist-shadow text-center max-w-xl w-full relative">
         <div className="absolute top-4 right-4 flex gap-2">
           <button 
             onClick={() => onMinimize(true)}

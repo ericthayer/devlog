@@ -63,7 +63,6 @@ export const UploadView: React.FC<UploadViewProps> = ({
       </header>
       
       <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
-        {/* Processing Status Indicator in Drawer */}
         {isUploading && (
           <div className="mb-4">
             <ProcessingStatus 
@@ -75,8 +74,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
           </div>
         )}
 
-        {/* Thinking Mode Toggle */}
-        <div className="flex items-center justify-between p-4 bg-black text-[#FFF500] brutalist-border">
+        <div className="flex items-center justify-between p-4 bg-black text-amber-300 brutalist-border">
           <div className="flex items-center gap-3">
             <Icon name="BrainCircuit" size={20} />
             <div>
@@ -86,14 +84,14 @@ export const UploadView: React.FC<UploadViewProps> = ({
           </div>
           <button 
             onClick={onToggleThinking}
-            className={`w-10 h-6 brutalist-border relative transition-colors ${isThinkingEnabled ? 'bg-[#FFF500]' : 'bg-zinc-800'}`}
+            className={`w-10 h-6 brutalist-border relative transition-colors ${isThinkingEnabled ? 'bg-amber-300' : 'bg-zinc-800'}`}
           >
             <div className={`absolute top-0.5 w-4 h-4 bg-white brutalist-border transition-all ${isThinkingEnabled ? 'right-0.5' : 'left-0.5'}`} />
           </button>
         </div>
 
         {!isUploading && (
-          <div className="border-4 border-dashed border-black p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-[#FFF50011] transition-all cursor-pointer relative group">
+          <div className="border-4 border-dashed border-black p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-amber-300/10 transition-all cursor-pointer relative group">
             <input 
               type="file" 
               multiple 
@@ -147,7 +145,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
                     ) : (
                       <Icon name="FileCode" size={32} className="opacity-20" />
                     )}
-                    <div className="absolute top-1 right-1 bg-black text-[#FFF500] px-1 py-0.5 text-[7px] font-bold uppercase mono">
+                    <div className="absolute top-1 right-1 bg-black text-amber-300 px-1 py-0.5 text-[7px] font-bold uppercase mono">
                       {asset.fileType}
                     </div>
                   </div>

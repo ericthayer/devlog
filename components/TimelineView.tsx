@@ -22,14 +22,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  // Derive unique tags from all studies
   const allTags = useMemo(() => {
     const tags = new Set<string>();
     caseStudies.forEach(s => s.tags.forEach(t => tags.add(t)));
     return Array.from(tags).sort();
   }, [caseStudies]);
 
-  // Filter and Sort Logic
   const filteredStudies = useMemo(() => {
     return caseStudies
       .filter(s => {
@@ -52,7 +50,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-8 border-black pb-6 gap-6">
         <div>
           <div className="flex flex-wrap gap-2">
-            <p className="mono text-[10px] font-bold bg-black text-[#FFF500] inline-block px-3 py-1 uppercase tracking-widest">
+            <p className="mono text-[10px] font-bold bg-black text-amber-300 inline-block px-3 py-1 uppercase tracking-widest">
               SYSTEM_SYNC: ACTIVE
             </p>
             <p className="mono text-[10px] font-bold bg-zinc-200 text-black inline-block px-3 py-1 uppercase tracking-widest">
@@ -62,7 +60,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         </div>
       </header>
 
-      {/* Filter Interface */}
       <div className="mb-12 space-y-6">
         <div className="flex flex-col lg:flex-row gap-4 items-stretch">
           <div className="relative flex-1 group">
@@ -85,7 +82,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   key={status}
                   onClick={() => setSelectedStatus(status)}
                   className={`px-6 py-4 text-[11px] font-black uppercase border-r last:border-r-0 border-black transition-all ${
-                    selectedStatus === status ? 'bg-[#FFF500]' : 'hover:bg-zinc-50'
+                    selectedStatus === status ? 'bg-amber-300' : 'hover:bg-zinc-50'
                   }`}
                 >
                   {status}
@@ -95,7 +92,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
             <button
               onClick={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
-              className="px-6 py-4 brutalist-border bg-white text-[11px] font-black uppercase flex items-center gap-3 hover:bg-[#FFF500] transition-all"
+              className="px-6 py-4 brutalist-border bg-white text-[11px] font-black uppercase flex items-center gap-3 hover:bg-amber-300 transition-all"
             >
               <Icon name={sortOrder === 'newest' ? 'ArrowDownNarrowWide' : 'ArrowUpNarrowWide'} size={18} />
               {sortOrder === 'newest' ? 'NEWEST' : 'OLDEST'}
@@ -118,7 +115,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 key={tag}
                 onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
                 className={`px-4 py-1.5 text-[10px] font-black uppercase transition-all border-2 border-black ${
-                  selectedTag === tag ? 'bg-[#FFF500]' : 'bg-white hover:bg-zinc-100'
+                  selectedTag === tag ? 'bg-amber-300' : 'bg-white hover:bg-zinc-100'
                 }`}
               >
                 #{tag}
@@ -128,7 +125,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         )}
       </div>
 
-      {/* Grid Rendering System */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {filteredStudies.length === 0 ? (
           <div className="col-span-full border-4 border-dashed border-zinc-300 p-32 flex flex-col items-center justify-center text-center bg-white opacity-60">
@@ -148,7 +144,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               <div className="p-8 md:p-10 flex-1 flex flex-col">
                 <div className="flex justify-between items-center mb-8">
                   <span className={`px-4 py-1.5 brutalist-border text-[10px] font-black uppercase italic ${
-                    study.status === 'published' ? 'bg-black text-[#FFF500]' : 'bg-[#FFF500] text-black'
+                    study.status === 'published' ? 'brutalist-bg-success text-black' : 'bg-amber-300 text-black'
                   }`}>
                     {study.status}
                   </span>
@@ -158,7 +154,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   </div>
                 </div>
                 
-                <h3 className="text-3xl md:text-4xl font-black leading-tight mb-6 group-hover:underline uppercase italic line-clamp-2 decoration-8 decoration-[#FFF500] underline-offset-4">
+                <h3 className="text-3xl md:text-4xl font-black leading-tight mb-6 group-hover:underline uppercase italic line-clamp-2 decoration-8 decoration-amber-300 underline-offset-4">
                   {study.title}
                 </h3>
                 
@@ -183,7 +179,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   {study.artifacts.slice(0, 5).map((a, idx) => (
                     <div 
                       key={idx} 
-                      className="w-12 h-12 brutalist-border bg-white flex items-center justify-center shrink-0 hover:z-10 hover:bg-[#FFF500] transition-colors relative"
+                      className="w-12 h-12 brutalist-border bg-white flex items-center justify-center shrink-0 hover:z-10 hover:bg-amber-300 transition-colors relative"
                     >
                       <Icon name={a.fileType.match(/(mp4|webm|mov)/i) ? 'Video' : a.fileType === 'pdf' ? 'FileText' : 'Image'} size={20} />
                     </div>
@@ -194,7 +190,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                     </div>
                   )}
                 </div>
-                <div className="bg-black text-white w-10 h-10 flex items-center justify-center brutalist-border group-hover:bg-[#FFF500] group-hover:text-black transition-colors">
+                <div className="bg-black text-white w-10 h-10 flex items-center justify-center brutalist-border group-hover:bg-amber-300 group-hover:text-black transition-colors">
                   <Icon name="ArrowRight" size={20} />
                 </div>
               </div>

@@ -39,8 +39,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => onUpdatePreferences({ theme: t })}
                   className={`px-3 py-1 text-[9px] font-black uppercase transition-all ${
                     preferences.theme === t 
-                      ? 'bg-[#FFF500] text-black' 
-                      : 'bg-black text-white hover:text-[#FFF500]'
+                      ? 'bg-amber-300 text-black' 
+                      : 'bg-black text-white hover:text-amber-300'
                   }`}
                 >
                   {t}
@@ -61,8 +61,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => onUpdatePreferences({ exportFormat: f })}
                   className={`px-3 py-1 text-[9px] font-black uppercase transition-all ${
                     preferences.exportFormat === f 
-                      ? 'bg-[#FFF500] text-black' 
-                      : 'bg-black text-white hover:text-[#FFF500]'
+                      ? 'bg-amber-300 text-black' 
+                      : 'bg-black text-white hover:text-amber-300'
                   }`}
                 >
                   {f}
@@ -81,7 +81,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               className={`w-12 h-6 brutalist-border relative transition-all ${preferences.autoRename ? 'bg-black' : 'bg-zinc-200'}`}
             >
               <div className={`absolute top-0.5 w-4 h-4 transition-all brutalist-border ${
-                preferences.autoRename ? 'right-0.5 bg-[#FFF500]' : 'left-0.5 bg-white'
+                preferences.autoRename ? 'right-0.5 bg-amber-300' : 'left-0.5 bg-white'
               }`} />
             </button>
           </SettingsItem>
@@ -102,7 +102,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Purging will permanently delete all local intelligence records, case studies, and artifact links. This cannot be undone.
             </p>
           </div>
-          <BrutalistButton variant="danger" fullWidth className="py-3 text-xs" onClick={onClearData}>
+          <BrutalistButton variant="danger" fullWidth className="py-6 text-sm" onClick={onClearData}>
             Purge All Intelligence
           </BrutalistButton>
         </div>
