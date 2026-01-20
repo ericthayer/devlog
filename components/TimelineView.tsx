@@ -69,7 +69,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             <input 
               type="text"
               placeholder="QUERY DATABASE: TAGS / TITLES / CHALLENGES..."
-              className="w-full pl-14 pr-6 py-5 brutalist-border mono text-sm font-black placeholder:text-zinc-400 focus:outline-none focus:bg-white bg-zinc-50 transition-all focus:brutalist-shadow-sm"
+              className="w-full pl-14 pr-6 py-5 brutalist-border !border-4 mono text-sm font-black placeholder:text-zinc-400 focus:outline-none focus:bg-white bg-zinc-50 transition-all focus:brutalist-shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -101,7 +101,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         </div>
 
         {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-4 border-t-4 border-black border-dotted">
+          <div className="flex flex-wrap gap-2 pt-5 border-t-4 border-black border-dotted">
             <button
               onClick={() => setSelectedTag(null)}
               className={`px-4 py-1.5 text-[10px] font-black uppercase transition-all border-2 border-black ${
@@ -125,7 +125,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 @[1000]:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 @[1000px]:grid-cols-2 gap-10">
         {filteredStudies.length === 0 ? (
           <div className="col-span-full border-4 border-dashed border-zinc-300 p-32 flex flex-col items-center justify-center text-center bg-white opacity-60">
             <Icon name="MonitorX" size={100} className="text-zinc-200 mb-8" />
