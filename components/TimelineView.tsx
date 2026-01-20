@@ -46,7 +46,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   }, [caseStudies, searchQuery, selectedStatus, selectedTag, sortOrder]);
 
   return (
-    <div className="p-4 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-4 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500 @container">
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-8 border-black pb-6 gap-6">
         <div>
           <div className="flex flex-wrap gap-2">
@@ -125,7 +125,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 @[1000]:grid-cols-2 gap-10">
         {filteredStudies.length === 0 ? (
           <div className="col-span-full border-4 border-dashed border-zinc-300 p-32 flex flex-col items-center justify-center text-center bg-white opacity-60">
             <Icon name="MonitorX" size={100} className="text-zinc-200 mb-8" />
