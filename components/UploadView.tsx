@@ -58,18 +58,18 @@ export const UploadView: React.FC<UploadViewProps> = ({
             {assets.length === 0 && (
               <button 
                 onClick={() => onAddDemoAssets?.(DEMO_ASSETS)}
-                className="mono text-[11px] min-h-[32px] font-black uppercase hover:underline bg-black text-white px-2 py-1 flex items-center gap-1.5"
+                className="mono text-[11px] min-h-[32px] font-black uppercase bg-black text-white px-3 py-1.5 flex items-center gap-1.5 hover:bg-zinc-800 transition-colors"
               >
-              
-                Load_Demo
+                LOAD_DEMO
               </button>
             )}
             {/* Add Asset */}
             <button 
               onClick={onOpenManualModal}
-              className="mono text-[11px] font-black uppercase hover:underline bg-zinc-200 hover:bg-zinc-300 text-black px-2 py-1 !border-2 border-black min-h-[32px] flex items-center gap-1"
+              className="mono text-[11px] font-black uppercase bg-zinc-200 hover:bg-zinc-300 text-black px-2 py-1 !border-2 border-black min-h-[32px] flex items-center justify-center w-[32px]"
+              title="Manual Ingress"
             >
-            <Icon name="Plus" size={18} />
+              <Icon name="Plus" size={18} />
             </button>
           </div>
         )}
@@ -121,7 +121,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
             </p>
           </div>
         )}
-        {/* Clear Button */}
+        
         {assets.length > 0 && (
           <div className="space-y-6 animate-in slide-in-from-bottom-2">
             <div className="flex items-center justify-between">
@@ -129,10 +129,9 @@ export const UploadView: React.FC<UploadViewProps> = ({
               {!isUploading && (
                 <button 
                   onClick={onClearAssets}
-                  className="mono text-[11px] font-black uppercase bg-zinc-200 text-black px-2 py-1 !border-2 border-black hover:underline hover:bg-zinc-300 flex items-center gap-1.5"
+                  className="mono text-[11px] font-black uppercase bg-zinc-200 text-black px-3 py-1 !border-2 border-black hover:bg-zinc-300 flex items-center gap-1.5 transition-colors"
                 >
-                <Icon name="Delete" size={20} />
-                 Clear
+                  CLEAR
                 </button>
               )}
             </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 import { BrutalistButton } from './BrutalistButton';
 import { Asset } from '../types';
@@ -18,6 +18,17 @@ export const ManualAssetModal: React.FC<ManualAssetModalProps> = ({ onAdd, onClo
     fileType: 'txt',
     size: '1024'
   });
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +53,20 @@ export const ManualAssetModal: React.FC<ManualAssetModalProps> = ({ onAdd, onClo
   const labelStyles = "block text-[10px] font-black uppercase mb-1 italic opacity-60";
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white brutalist-border p-8 brutalist-shadow max-w-md w-full relative">
+    <div 
+      className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+      onClick={onClose}
+      aria-modal="true"
+      role="dialog"
+    >
+      <div 
+        className="bg-white brutalist-border p-8 brutalist-shadow max-w-md w-full relative cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-zinc-200 hover:bg-zinc-300 transition-colors brutalist-border"
+          aria-label="Close modal"
         >
           <Icon name="X" size={16} />
         </button>
@@ -61,6 +81,7 @@ export const ManualAssetModal: React.FC<ManualAssetModalProps> = ({ onAdd, onClo
             <label className={labelStyles}>Identifier_Name</label>
             <input 
               required
+              autoFocus
               type="text" 
               className={inputStyles}
               placeholder="e.g. Navigation-V2-Flow"
