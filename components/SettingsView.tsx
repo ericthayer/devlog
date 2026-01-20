@@ -102,7 +102,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Purging will permanently delete all local intelligence records, case studies, and artifact links. This cannot be undone.
             </p>
           </div>
-          <BrutalistButton variant="danger" fullWidth className="py-6 text-sm" onClick={onClearData}>
+          <BrutalistButton variant="danger" fullWidth className="py-6 text-sm flex items-center gap-3 justify-center" onClick={onClearData}>
+            <Icon name="Skull" size={24} />
             Purge All Intelligence
           </BrutalistButton>
         </div>
@@ -111,7 +112,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="p-6 border-t-4 border-black bg-white mt-auto">
         <div className="flex items-center gap-3 justify-center text-zinc-400">
           <Icon name="ShieldCheck" size={16} />
-          <span className="mono text-[8px] font-black uppercase">End-to-End Encrypted Node</span>
+          <span className="mono text-[10px] font-black uppercase">End-to-End Encrypted Node</span>
         </div>
       </div>
     </div>

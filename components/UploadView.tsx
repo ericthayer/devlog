@@ -186,7 +186,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
         )}
       </div>
 
-      {assets.length > 0 && (
+      {assets.length > 0 ? (
         <div className="p-6 border-t-4 border-black bg-white sticky bottom-0">
           <BrutalistButton 
             fullWidth 
@@ -197,6 +197,13 @@ export const UploadView: React.FC<UploadViewProps> = ({
             <Icon name="Zap" size={24} className={isUploading ? 'animate-pulse' : ''} />
             {isUploading ? 'BUILDING...' : 'GENERATE_LOG'}
           </BrutalistButton>
+        </div>
+      ) : (
+        <div className="p-6 border-t-4 border-black bg-white mt-auto">
+          <div className="flex items-center gap-3 justify-center text-zinc-400">
+            <Icon name="ShieldCheck" size={16} />
+            <span className="mono text-[10px] font-black uppercase">End-to-End Encrypted Node</span>
+          </div>
         </div>
       )}
     </div>
