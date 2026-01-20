@@ -25,7 +25,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const getViewTitle = () => {
     switch (activeView) {
-      case 'timeline': return 'Thayer';
+      case 'timeline': return 'Contributions';
       case 'article': return 'Contribution_Detail';
       case 'editor': return 'Editor_Core';
       default: return 'System_Node';
@@ -38,7 +38,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {onBack && (
           <button 
             onClick={onBack} 
-            className="hideen items-center gap-3 font-black uppercase hover:translate-x-[-4px] transition-transform group"
+            className="hidden items-center gap-3 font-black uppercase hover:translate-x-[-4px] transition-transform group"
           >
             <div className="bg-black text-white p-2 group-hover:bg-[#FFF500] group-hover:text-black transition-colors brutalist-border">
               <Icon name="ArrowLeft" size={18} />
