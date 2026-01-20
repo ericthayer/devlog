@@ -43,7 +43,16 @@ export const UploadView: React.FC<UploadViewProps> = ({
           <p className="mono text-[8px] font-bold mt-1 opacity-60">READY FOR MULTI-FILE INGESTION</p>
         </div>
         {!isUploading && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {assets.length > 0 && (
+              <button 
+                onClick={onCreateStudy}
+                className="mono text-[8px] font-black uppercase bg-amber-300 text-black px-2 py-1 border border-black flex items-center gap-1 hover:bg-black hover:text-amber-300 transition-colors animate-in fade-in zoom-in duration-300"
+              >
+                <Icon name="Zap" size={10} />
+                Generate_Log
+              </button>
+            )}
             <button 
               onClick={onOpenManualModal}
               className="mono text-[8px] font-black uppercase underline hover:no-underline bg-zinc-200 text-black px-2 py-1 border border-black"
