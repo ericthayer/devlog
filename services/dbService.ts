@@ -41,24 +41,64 @@ export const saveCaseStudy = async (caseStudy: Partial<CaseStudy>, assets: Asset
   const newId = csData.id;
 
   // 2. Handle Assets
-  // Strategy: For simplicity in this "Log" app, if updating, we delete old assets and re-insert current ones 
-  // to stay perfectly in sync with the frontend editor state.
+  // Strategy: For simplicity, delete old assets for this study and re-insert current ones.
+  // This ensures the DB reflects exactly what's in the UI.
   if (caseStudyId) {
      await supabase.from('assets').delete().eq('case_study_id', newId);
   }
 
-  const assetsToInsert = assets.map(asset => ({
-    original_name: asset.originalName,
-    ai_name: asset.aiName,
-    type: asset.type,
-    topic: asset.topic,
-    context: asset.context,
-    variant: asset.variant,
-    version: asset.version,
-    file_type: asset.fileType,
-    url: asset.url,
-    size: asset.size,
-    case_study_id: newId
+  // 3. Upload Blobs to Storage & Prepare for Insert
+  const assetsToInsert = await Promise.all(assets.map(async (asset) => {
+    let assetUrl = asset.url;
+
+    // If it's a local Blob URL, upload to Supabase Storage
+    if (assetUrl.startsWith('blob:')) {
+      try {
+        const response = await fetch(assetUrl);
+        const blob = await response.blob();
+        
+        // Path: case_study_id/filename
+        const filePath = `${newId}/${asset.aiName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(filePath, blob, {
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error(`Failed to upload ${asset.aiName}`, uploadError);
+          // Fallback: keep blob URL? Or fail? 
+          // If we fail, the asset record will have a broken URL on reload.
+          // Let's throw to stop the save and alert user?
+          // Or just log and continue (asset will be broken in cloud).
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('assets')
+          .getPublicUrl(filePath);
+          
+        assetUrl = publicUrl;
+      } catch (e) {
+        console.error("Error processing asset upload", e);
+        throw e;
+      }
+    }
+
+    return {
+      original_name: asset.originalName,
+      ai_name: asset.aiName,
+      type: asset.type,
+      topic: asset.topic,
+      context: asset.context,
+      variant: asset.variant,
+      version: asset.version,
+      file_type: asset.fileType,
+      url: assetUrl,
+      size: asset.size,
+      case_study_id: newId
+    };
   }));
 
   if (assetsToInsert.length > 0) {

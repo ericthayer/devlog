@@ -6,14 +6,14 @@ interface BrutalistButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElem
   fullWidth?: boolean;
 }
 
-export const BrutalistButton: React.FC<BrutalistButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
+export const BrutalistButton: React.FC<BrutalistButtonProps> = ({
+  children,
+  variant = 'primary',
   fullWidth = false,
   className = '',
-  ...props 
+  ...props
 }) => {
-  const baseStyles = "brutalist-border brutalist-shadow active:brutalist-shadow-active transition-all duration-75 px-6 py-3 font-bold uppercase tracking-wider flex items-center justify-center gap-2";
+  const baseStyles = "brutalist-border brutalist-shadow hover:brutalist-shadow-hover active:brutalist-shadow-active transition-all duration-75 px-6 py-3 font-bold uppercase tracking-wider flex items-center justify-center gap-2";
   const variants = {
     primary: "bg-amber-300 hover:bg-amber-400",
     secondary: "bg-white hover:bg-gray-100",
@@ -21,7 +21,7 @@ export const BrutalistButton: React.FC<BrutalistButtonProps> = ({
   };
 
   return (
-    <button 
+    <button
       className={`${baseStyles} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...props}
     >

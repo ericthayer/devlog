@@ -266,9 +266,23 @@ const App: React.FC = () => {
       
       // Save draft to Supabase immediately
       try {
-        const { caseStudy: savedStudy } = await saveCaseStudy(fullStudy, assets);
+        const { caseStudy: savedStudy, assets: savedAssets } = await saveCaseStudy(fullStudy, assets);
         // Update local study with real UUID from DB
         fullStudy.id = savedStudy.id;
+        // Update artifacts with real URLs
+        fullStudy.artifacts = savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9),
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+        }));
       } catch (e: any) {
         console.error("Failed to auto-save draft", e);
         // We don't block the UI flow for auto-save failure, but we log it
@@ -305,11 +319,49 @@ const App: React.FC = () => {
       // In this app structure, 'assets' state seems to be a global "staging" area?
       // Or 'updatedStudy.artifacts'? 
       // The Type definition says CaseStudy has 'artifacts: Asset[]'.
-      const { caseStudy: savedRecord } = await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
+      const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
       
       // Update local state with real ID if it changed (e.g. first save of a draft)
       if (savedRecord.id !== updatedStudy.id) {
-         const finalStudy = { ...updatedStudy, id: savedRecord.id };
+         const finalStudy = { 
+           ...updatedStudy, 
+           id: savedRecord.id,
+           // Update artifacts with the ones returned from DB (containing new URLs)
+           artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9), // DB doesn't return ID immediately in our insert map, but that's ok for now
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+           }))
+         };
+         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+         setSelectedArticle(finalStudy);
+      } else {
+        // Even if ID didn't change, URLs might have (blob -> storage)
+        // We should update the study in place
+         const finalStudy = { 
+           ...updatedStudy, 
+           artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9), 
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+           }))
+         };
          setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
          setSelectedArticle(finalStudy);
       }
@@ -329,14 +381,29 @@ const App: React.FC = () => {
       setCaseStudies(prev => prev.map(s => s.id === study.id ? publishedStudy : s));
       setSelectedArticle(publishedStudy);
       
-      const { caseStudy: savedRecord } = await saveCaseStudy(publishedStudy, study.artifacts);
+      const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(publishedStudy, study.artifacts);
       
       // Update local state with real ID
-      if (savedRecord.id !== study.id) {
-        const finalStudy = { ...publishedStudy, id: savedRecord.id };
-        setCaseStudies(prev => prev.map(s => s.id === study.id ? finalStudy : s));
-        setSelectedArticle(finalStudy);
-      }
+      const finalStudy = { 
+        ...publishedStudy, 
+        id: savedRecord.id,
+        artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9),
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+        }))
+      };
+      
+      setCaseStudies(prev => prev.map(s => s.id === study.id ? finalStudy : s));
+      setSelectedArticle(finalStudy);
 
       // Optional: Show success toast
     } catch (e: any) {

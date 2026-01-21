@@ -11,9 +11,11 @@ interface ToastProps {
 
 export const Toast: React.FC<ToastProps> = ({ message, type = 'error', onClose, duration = 5000 }) => {
   useEffect(() => {
+    if (type === 'error') return;
+
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
-  }, [onClose, duration]);
+  }, [onClose, duration, type]);
 
   const variants = {
     error: "bg-red-500 text-white",
@@ -34,7 +36,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'error', onClose, 
         <span className="font-black uppercase text-xs mono mb-1">{type}_ALERT</span>
         <p className="font-bold text-sm tracking-tight">{message}</p>
       </div>
-      <button 
+      <button
         onClick={onClose}
         className="ml-4 hover:scale-110 transition-transform"
       >
