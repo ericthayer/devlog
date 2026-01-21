@@ -448,8 +448,8 @@ const App: React.FC = () => {
           onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
         />
 
-        <div className="flex-1 block overflow-hidden h-dvh relative">
-          <main className="h-full overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
+        <div className="flex-1 flex flex-row overflow-hidden h-dvh relative">
+          <main className="h-full flex-1 min-w-0 overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
             <div className="w-full flex-1 grid grid-rows-[1fr_auto]">
               {view === 'timeline' && (
                 <TimelineView
