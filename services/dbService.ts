@@ -75,7 +75,7 @@ export const saveCaseStudy = async (caseStudy: Partial<CaseStudy>, assets: Asset
 export const getCaseStudies = async () => {
   const { data, error } = await supabase
     .from('case_studies')
-    .select('*')
+    .select('*, assets(*)')
     .order('created_at', { ascending: false });
 
   if (error) throw error;

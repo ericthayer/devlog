@@ -52,28 +52,64 @@ const App: React.FC = () => {
       try {
         const savedStudies = await getCaseStudies();
         if (savedStudies && savedStudies.length > 0) {
-           // Transform DB shape if necessary, assuming mostly match 
-           // We might need to map DB columns to CaseStudy type if names differ significantly
-           // But since we control both, we can align them.
-           // For now, let's keep local storage as a cache/fallback or remove it?
-           // The plan didn't explicitly remove local storage, but prioritizing DB is good.
-           // Let's just fetch from DB.
-           // Actually, getCaseStudies just returns the rows. We need to match the CaseStudy interface.
-           // Our dbService.ts getCaseStudies returns 'any[]' effectively because supabase types aren't fully strict here without deeper setup.
-           // Let's rely on basic mapping.
-           // For this step, I will just implement the SAVE functionality first as requested by the plan.
-           // Loading is a "nice to have" or part of "Verify Data Persistence".
-           // Let's stick to the immediate task: Implementing Client... "save".
+           const mappedStudies: CaseStudy[] = savedStudies.map((s: any) => ({
+             id: s.id,
+             title: s.title,
+             status: s.status,
+             date: s.created_at, // Map created_at to date
+             tags: s.tags || [],
+             problem: s.problem,
+             approach: s.approach,
+             outcome: s.outcome,
+             nextSteps: s.next_steps, // Map snake_case
+             seoMetadata: s.seo_metadata || { title: '', description: '', keywords: [] }, // Map snake_case
+             artifacts: (s.assets || []).map((a: any) => ({
+               id: a.id,
+               originalName: a.original_name, // Map snake_case
+               aiName: a.ai_name, // Map snake_case
+               type: a.type,
+               topic: a.topic,
+               context: a.context,
+               variant: a.variant,
+               version: a.version,
+               fileType: a.file_type, // Map snake_case
+               url: a.url,
+               size: a.size
+             }))
+           }));
+           
+           setCaseStudies(mappedStudies);
         }
       } catch (e) {
         console.error("Failed to load from DB", e);
+        // Fallback to local storage if DB fails or is empty? 
+        // For now, let's allow the local storage block below to run if DB is empty or fails, 
+        // but typically we'd want DB to be the source of truth if connected.
       }
     };
-    // loadData(); // Uncomment to enable loading
+    
+    // Check if we have Supabase creds/connection before relying entirely?
+    // Since we are "integrated", let's try loading.
+    loadData();
+    
+    // We keep the local storage logic as a secondary check or for "offline" dev 
+    // if I wanted to merge them, but simplest is: "If DB has data, use it. Else check local."
+    // However, the current code structure below runs unconditionally.
+    // Let's modify it to only load local if state is empty?
+    // Or just run both and let React handle the updates (DB will usually be slower and overwrite local).
     
     const saved = localStorage.getItem('devsigner_data_v3');
     if (saved) {
       const parsed = JSON.parse(saved);
+      // Only set if we haven't already loaded from DB (though DB is async...)
+      // The cleanest way is probably to let DB overwrite local if successful.
+      // So we leave this here, but maybe we should prefer DB.
+      // Actually, if we just want to see the DB data, we should probably ignore local storage 
+      // if we are fully switching to Supabase. 
+      // User said "I don't see my records".
+      
+      // Let's prevent local storage from overwriting if DB load is in progress?
+      // No, setCaseStudies from loadData will happen later (async) and will overwrite this initial sync set.
       setCaseStudies(parsed.caseStudies || []);
       setAssets(parsed.assets || []);
       if (parsed.preferences) {
