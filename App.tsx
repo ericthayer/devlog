@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import JSZip from 'jszip';
 import { AppView, CaseStudy, Asset, UserPreferences } from './types';
-import { Navigation } from './components/Navigation';
 import { AppHeader } from './components/AppHeader';
 import { Drawer } from './components/Drawer';
 import { TimelineView } from './components/TimelineView';
@@ -437,17 +436,8 @@ const App: React.FC = () => {
 
   return (
     <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
-      <Navigation
-        activeView={view === 'editor' ? 'article' : view}
-        onViewChange={(v) => {
-          setView(v);
-          setSelectedArticle(null);
-          setIsUploadOpen(false);
-          setIsSettingsOpen(false);
-        }}
-      />
 
-      <div className="flex-1 flex flex-col md:pl-0 min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden md:pl-0 min-w-0">
         <AppHeader
           activeView={view}
           isUploadOpen={isUploadOpen}
@@ -458,8 +448,8 @@ const App: React.FC = () => {
           onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
         />
 
-        <div className="flex-1 grid grid-rows-[1fr_minmax(20rem,40dvh)] overflow-hidden h-dvh">
-          <main className="flex-1 row-[span_1_/_span_2] overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
+        <div className="flex-1 block overflow-hidden h-dvh relative">
+          <main className="h-full overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
             <div className="w-full flex-1 grid grid-rows-[1fr_auto]">
               {view === 'timeline' && (
                 <TimelineView

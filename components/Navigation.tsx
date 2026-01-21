@@ -28,8 +28,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`flex items-center gap-4 px-4 py-3 brutalist-border text-lg font-bold uppercase transition-all ${activeView === item.id || (activeView === 'article' && item.id === 'timeline')
-                  ? 'bg-amber-300 brutalist-shadow'
-                  : 'hover:bg-gray-50'
+                ? 'bg-amber-300 brutalist-shadow'
+                : 'hover:bg-gray-50'
                 }`}
             >
               <Icon name={item.icon} size={24} />
