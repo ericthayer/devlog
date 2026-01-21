@@ -14,18 +14,18 @@ interface AppHeaderProps {
   onBack?: () => void;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ 
-  activeView, 
+export const AppHeader: React.FC<AppHeaderProps> = ({
+  activeView,
   isUploadOpen,
   isSettingsOpen,
   hasAssets,
   onToggleUpload,
   onToggleSettings,
-  onBack 
+  onBack
 }) => {
   const getViewTitle = () => {
     switch (activeView) {
-      case 'timeline': return 'Contributions';
+      case 'timeline': return 'Dev_Timeline';
       case 'article': return 'Contribution_Detail';
       case 'editor': return 'Editor_Core';
       default: return 'System_Node';
@@ -36,8 +36,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <header className="sticky top-0 bg-white border-b-4 border-black p-4 md:p-6 z-40 flex justify-between items-center">
       <div className="flex items-center gap-6">
         {onBack && (
-          <button 
-            onClick={onBack} 
+          <button
+            onClick={onBack}
             className="hidden items-center gap-3 font-black uppercase hover:translate-x-[-4px] transition-transform group"
           >
             <div className="bg-black text-white p-2 group-hover:bg-amber-300 group-hover:text-black transition-colors brutalist-border">
@@ -59,8 +59,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
 
       <div className="flex gap-3 md:gap-4 items-center">
-         <BrutalistButton 
-          variant={isSettingsOpen ? 'primary' : 'secondary'} 
+        <BrutalistButton
+          variant={isSettingsOpen ? 'primary' : 'secondary'}
           onClick={onToggleSettings}
           title="Global Settings"
           className={`text-sm py-2 px-6 hover:brutalist-shadow-active hover:-translate-y-1 transition-all brutalist-shadow-sm ${isSettingsOpen ? 'bg-amber-300' : ''}`}
@@ -69,14 +69,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </BrutalistButton>
 
         <div className="relative">
-          <BrutalistButton 
-            variant={isUploadOpen ? 'primary' : 'secondary'} 
-            onClick={onToggleUpload} 
+          <BrutalistButton
+            variant={isUploadOpen ? 'primary' : 'secondary'}
+            onClick={onToggleUpload}
             className={`text-sm py-2 px-6 hover:brutalist-shadow-active hover:-translate-y-1 transition-all brutalist-shadow-sm relative ${isUploadOpen ? 'bg-amber-300' : ''}`}
           >
             <Icon name="Zap" size={24} />
           </BrutalistButton>
-          
+
           {hasAssets && !isUploadOpen && (
             <span className="absolute -top-2 -right-2 flex h-6 w-6 z-50 pointer-events-none">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
