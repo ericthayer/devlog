@@ -13,12 +13,11 @@ import { EditorView } from './components/EditorView';
 import { ProcessingModal } from './components/ProcessingModal';
 import { ProcessingStatus } from './components/ProcessingStatus';
 import { SystemHud } from './components/SystemHud';
-import { Icon } from './components/Icon';
 import { Toast } from './components/Toast';
 import { ManualAssetModal } from './components/ManualAssetModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { saveCaseStudy, getCaseStudies } from './services/dbService';
-import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
+import { DEMO_STUDIES } from './utils/demoData';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   theme: 'light',
@@ -41,10 +40,10 @@ const App: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<CaseStudy | null>(null);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
   const [processingStep, setProcessingStep] = useState<'analyzing' | 'generating' | 'finalizing'>('analyzing');
   const [processingProgress, setProcessingProgress] = useState(0);
-  
+
   const cancelRef = useRef(false);
 
   useEffect(() => {
@@ -52,33 +51,33 @@ const App: React.FC = () => {
       try {
         const savedStudies = await getCaseStudies();
         if (savedStudies && savedStudies.length > 0) {
-           const mappedStudies: CaseStudy[] = savedStudies.map((s: any) => ({
-             id: s.id,
-             title: s.title,
-             status: s.status,
-             date: s.created_at, // Map created_at to date
-             tags: s.tags || [],
-             problem: s.problem,
-             approach: s.approach,
-             outcome: s.outcome,
-             nextSteps: s.next_steps, // Map snake_case
-             seoMetadata: s.seo_metadata || { title: '', description: '', keywords: [] }, // Map snake_case
-             artifacts: (s.assets || []).map((a: any) => ({
-               id: a.id,
-               originalName: a.original_name, // Map snake_case
-               aiName: a.ai_name, // Map snake_case
-               type: a.type,
-               topic: a.topic,
-               context: a.context,
-               variant: a.variant,
-               version: a.version,
-               fileType: a.file_type, // Map snake_case
-               url: a.url,
-               size: a.size
-             }))
-           }));
-           
-           setCaseStudies(mappedStudies);
+          const mappedStudies: CaseStudy[] = savedStudies.map((s: any) => ({
+            id: s.id,
+            title: s.title,
+            status: s.status,
+            date: s.created_at, // Map created_at to date
+            tags: s.tags || [],
+            problem: s.problem,
+            approach: s.approach,
+            outcome: s.outcome,
+            nextSteps: s.next_steps, // Map snake_case
+            seoMetadata: s.seo_metadata || { title: '', description: '', keywords: [] }, // Map snake_case
+            artifacts: (s.assets || []).map((a: any) => ({
+              id: a.id,
+              originalName: a.original_name, // Map snake_case
+              aiName: a.ai_name, // Map snake_case
+              type: a.type,
+              topic: a.topic,
+              context: a.context,
+              variant: a.variant,
+              version: a.version,
+              fileType: a.file_type, // Map snake_case
+              url: a.url,
+              size: a.size
+            }))
+          }));
+
+          setCaseStudies(mappedStudies);
         }
       } catch (e) {
         console.error("Failed to load from DB", e);
@@ -87,17 +86,17 @@ const App: React.FC = () => {
         // but typically we'd want DB to be the source of truth if connected.
       }
     };
-    
+
     // Check if we have Supabase creds/connection before relying entirely?
     // Since we are "integrated", let's try loading.
     loadData();
-    
+
     // We keep the local storage logic as a secondary check or for "offline" dev 
     // if I wanted to merge them, but simplest is: "If DB has data, use it. Else check local."
     // However, the current code structure below runs unconditionally.
     // Let's modify it to only load local if state is empty?
     // Or just run both and let React handle the updates (DB will usually be slower and overwrite local).
-    
+
     const saved = localStorage.getItem('devsigner_data_v3');
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -107,7 +106,7 @@ const App: React.FC = () => {
       // Actually, if we just want to see the DB data, we should probably ignore local storage 
       // if we are fully switching to Supabase. 
       // User said "I don't see my records".
-      
+
       // Let's prevent local storage from overwriting if DB load is in progress?
       // No, setCaseStudies from loadData will happen later (async) and will overwrite this initial sync set.
       setCaseStudies(parsed.caseStudies || []);
@@ -128,20 +127,20 @@ const App: React.FC = () => {
   const processFile = async (file: File | Blob, name: string, mimeType: string, index: number, total: number): Promise<Asset | null> => {
     try {
       let assetData: Partial<Asset> = {};
-      
+
       const fileToProcess = file instanceof File ? file : new File([file], name, { type: mimeType });
 
       if (preferences.autoRename) {
         assetData = await analyzeAsset(fileToProcess, mimeType || 'text/plain', isThinkingEnabled);
       }
-      
+
       if (cancelRef.current) return null;
 
       const extension = name.split('.').pop() || 'txt';
       const asset: Asset = {
         id: Math.random().toString(36).substr(2, 9),
         originalName: name,
-        aiName: preferences.autoRename 
+        aiName: preferences.autoRename
           ? `${assetData.topic || 'misc'}-${assetData.type || 'file'}-${assetData.context || 'dev'}-${assetData.variant || 'v1'}-${assetData.version || '1.0'}-${extension}`
           : name,
         type: assetData.type || 'unknown',
@@ -153,7 +152,7 @@ const App: React.FC = () => {
         url: (fileToProcess.size < 30000000 && !mimeType.includes('zip')) ? URL.createObjectURL(fileToProcess) : '',
         size: fileToProcess.size
       };
-      
+
       setProcessingProgress(((index + 1) / total) * 100);
       return asset;
     } catch (err: any) {
@@ -172,7 +171,7 @@ const App: React.FC = () => {
     setProcessingStep('analyzing');
     setProcessingProgress(0);
     cancelRef.current = false;
-    
+
     const assetsToProcess: { file: File | Blob; name: string; type: string }[] = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -189,10 +188,10 @@ const App: React.FC = () => {
           for (const zipFileName of zipFiles) {
             const zipFile = contents.files[zipFileName];
             const blob = await zipFile.async('blob');
-            assetsToProcess.push({ 
-              file: blob, 
-              name: zipFileName, 
-              type: zipFileName.split('.').pop() || 'txt' 
+            assetsToProcess.push({
+              file: blob,
+              name: zipFileName,
+              type: zipFileName.split('.').pop() || 'txt'
             });
           }
         } catch (err) {
@@ -215,7 +214,7 @@ const App: React.FC = () => {
     if (!cancelRef.current) {
       setAssets(prev => [...prev, ...processedAssets]);
     }
-    
+
     setIsUploading(false);
     setIsMinimized(true);
   };
@@ -263,7 +262,7 @@ const App: React.FC = () => {
       };
 
       setProcessingProgress(100);
-      
+
       // Save draft to Supabase immediately
       try {
         const { caseStudy: savedStudy, assets: savedAssets } = await saveCaseStudy(fullStudy, assets);
@@ -271,17 +270,17 @@ const App: React.FC = () => {
         fullStudy.id = savedStudy.id;
         // Update artifacts with real URLs
         fullStudy.artifacts = savedAssets.map((a: any) => ({
-             id: Math.random().toString(36).substr(2, 9),
-             originalName: a.original_name,
-             aiName: a.ai_name,
-             type: a.type,
-             topic: a.topic,
-             context: a.context,
-             variant: a.variant,
-             version: a.version,
-             fileType: a.file_type,
-             url: a.url,
-             size: a.size
+          id: Math.random().toString(36).substr(2, 9),
+          originalName: a.original_name,
+          aiName: a.ai_name,
+          type: a.type,
+          topic: a.topic,
+          context: a.context,
+          variant: a.variant,
+          version: a.version,
+          fileType: a.file_type,
+          url: a.url,
+          size: a.size
         }));
       } catch (e: any) {
         console.error("Failed to auto-save draft", e);
@@ -313,59 +312,59 @@ const App: React.FC = () => {
       setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
       setSelectedArticle(updatedStudy);
       setView('article');
-      
+
       // Save to Supabase
       // We pass the assets that belong to this study. 
       // In this app structure, 'assets' state seems to be a global "staging" area?
       // Or 'updatedStudy.artifacts'? 
       // The Type definition says CaseStudy has 'artifacts: Asset[]'.
       const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
-      
+
       // Update local state with real ID if it changed (e.g. first save of a draft)
       if (savedRecord.id !== updatedStudy.id) {
-         const finalStudy = { 
-           ...updatedStudy, 
-           id: savedRecord.id,
-           // Update artifacts with the ones returned from DB (containing new URLs)
-           artifacts: savedAssets.map((a: any) => ({
-             id: Math.random().toString(36).substr(2, 9), // DB doesn't return ID immediately in our insert map, but that's ok for now
-             originalName: a.original_name,
-             aiName: a.ai_name,
-             type: a.type,
-             topic: a.topic,
-             context: a.context,
-             variant: a.variant,
-             version: a.version,
-             fileType: a.file_type,
-             url: a.url,
-             size: a.size
-           }))
-         };
-         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
-         setSelectedArticle(finalStudy);
+        const finalStudy = {
+          ...updatedStudy,
+          id: savedRecord.id,
+          // Update artifacts with the ones returned from DB (containing new URLs)
+          artifacts: savedAssets.map((a: any) => ({
+            id: Math.random().toString(36).substr(2, 9), // DB doesn't return ID immediately in our insert map, but that's ok for now
+            originalName: a.original_name,
+            aiName: a.ai_name,
+            type: a.type,
+            topic: a.topic,
+            context: a.context,
+            variant: a.variant,
+            version: a.version,
+            fileType: a.file_type,
+            url: a.url,
+            size: a.size
+          }))
+        };
+        setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+        setSelectedArticle(finalStudy);
       } else {
         // Even if ID didn't change, URLs might have (blob -> storage)
         // We should update the study in place
-         const finalStudy = { 
-           ...updatedStudy, 
-           artifacts: savedAssets.map((a: any) => ({
-             id: Math.random().toString(36).substr(2, 9), 
-             originalName: a.original_name,
-             aiName: a.ai_name,
-             type: a.type,
-             topic: a.topic,
-             context: a.context,
-             variant: a.variant,
-             version: a.version,
-             fileType: a.file_type,
-             url: a.url,
-             size: a.size
-           }))
-         };
-         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
-         setSelectedArticle(finalStudy);
+        const finalStudy = {
+          ...updatedStudy,
+          artifacts: savedAssets.map((a: any) => ({
+            id: Math.random().toString(36).substr(2, 9),
+            originalName: a.original_name,
+            aiName: a.ai_name,
+            type: a.type,
+            topic: a.topic,
+            context: a.context,
+            variant: a.variant,
+            version: a.version,
+            fileType: a.file_type,
+            url: a.url,
+            size: a.size
+          }))
+        };
+        setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+        setSelectedArticle(finalStudy);
       }
-      
+
       // Show success toast? (Maybe later)
     } catch (e: any) {
       console.error("Failed to save to Supabase", e);
@@ -376,32 +375,32 @@ const App: React.FC = () => {
   const handlePublishStudy = async (study: CaseStudy) => {
     try {
       const publishedStudy = { ...study, status: 'published' as const };
-      
+
       // Optimistic update
       setCaseStudies(prev => prev.map(s => s.id === study.id ? publishedStudy : s));
       setSelectedArticle(publishedStudy);
-      
+
       const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(publishedStudy, study.artifacts);
-      
+
       // Update local state with real ID
-      const finalStudy = { 
-        ...publishedStudy, 
+      const finalStudy = {
+        ...publishedStudy,
         id: savedRecord.id,
         artifacts: savedAssets.map((a: any) => ({
-             id: Math.random().toString(36).substr(2, 9),
-             originalName: a.original_name,
-             aiName: a.ai_name,
-             type: a.type,
-             topic: a.topic,
-             context: a.context,
-             variant: a.variant,
-             version: a.version,
-             fileType: a.file_type,
-             url: a.url,
-             size: a.size
+          id: Math.random().toString(36).substr(2, 9),
+          originalName: a.original_name,
+          aiName: a.ai_name,
+          type: a.type,
+          topic: a.topic,
+          context: a.context,
+          variant: a.variant,
+          version: a.version,
+          fileType: a.file_type,
+          url: a.url,
+          size: a.size
         }))
       };
-      
+
       setCaseStudies(prev => prev.map(s => s.id === study.id ? finalStudy : s));
       setSelectedArticle(finalStudy);
 
@@ -437,20 +436,20 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black overflow-hidden ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
+    <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
       <Navigation
-        activeView={view === 'editor' ? 'article' : view} 
-        onViewChange={(v) => { 
-          setView(v); 
-          setSelectedArticle(null); 
+        activeView={view === 'editor' ? 'article' : view}
+        onViewChange={(v) => {
+          setView(v);
+          setSelectedArticle(null);
           setIsUploadOpen(false);
           setIsSettingsOpen(false);
-        }} 
+        }}
       />
-      
+
       <div className="flex-1 flex flex-col md:pl-0 min-w-0">
-        <AppHeader 
-          activeView={view} 
+        <AppHeader
+          activeView={view}
           isUploadOpen={isUploadOpen}
           isSettingsOpen={isSettingsOpen}
           hasAssets={assets.length > 0}
@@ -458,39 +457,39 @@ const App: React.FC = () => {
           onToggleSettings={toggleSettings}
           onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
         />
-        
-        <div className="flex-1 flex overflow-hidden h-dvh">
-          <main className="flex-1 overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
+
+        <div className="flex-1 grid grid-rows-[1fr_minmax(20rem,40dvh)] overflow-hidden h-dvh">
+          <main className="flex-1 row-[span_1_/_span_2] overflow-y-auto no-scrollbar bg-[#F9F9F9] relative flex">
             <div className="w-full flex-1 grid grid-rows-[1fr_auto]">
               {view === 'timeline' && (
-                <TimelineView 
-                  caseStudies={caseStudies} 
+                <TimelineView
+                  caseStudies={caseStudies}
                   assetsCount={caseStudies.reduce((acc, curr) => acc + curr.artifacts.length, 0)}
                   onSelectStudy={(study) => { setSelectedArticle(study); setView('article'); }}
                 />
               )}
-              
+
               {view === 'article' && selectedArticle && (
-                <ArticleView 
-                  study={selectedArticle} 
-                  onBack={() => setView('timeline')} 
+                <ArticleView
+                  study={selectedArticle}
+                  onBack={() => setView('timeline')}
                   onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
                   onPublish={handlePublishStudy}
                 />
               )}
 
               {view === 'editor' && selectedArticle && (
-                <EditorView 
+                <EditorView
                   study={selectedArticle}
                   onSave={handleSaveStudy}
                   onCancel={() => setView('article')}
                 />
               )}
 
-              <div className={`flex flex-col md:flex-row gap- p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white': ''}`}>
+              <div className={`flex flex-col sm:flex-row gap-4 p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white' : ''}`}>
                 <div className="bg-zinc-600 text-amber-300 p-4 brutalist-border brutalist-shadow-sm mono text-[10px] font-bold italic">
                   v1.0.0-alpha // OFFLINE CACHE: OK
-                </div>                        
+                </div>
                 <SystemHud isUploading={isUploading} />
               </div>
             </div>
@@ -498,7 +497,7 @@ const App: React.FC = () => {
 
           <Drawer isOpen={isUploadOpen || isSettingsOpen}>
             {isUploadOpen ? (
-              <UploadView 
+              <UploadView
                 assets={assets}
                 isUploading={isUploading}
                 progress={processingProgress}
@@ -514,10 +513,10 @@ const App: React.FC = () => {
                 onOpenManualModal={() => setIsManualModalOpen(true)}
               />
             ) : isSettingsOpen ? (
-              <SettingsView 
+              <SettingsView
                 preferences={preferences}
                 onUpdatePreferences={handleUpdatePreferences}
-                onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }} 
+                onClearData={() => { localStorage.removeItem('devsigner_data_v3'); window.location.reload(); }}
               />
             ) : null}
           </Drawer>
@@ -526,7 +525,7 @@ const App: React.FC = () => {
 
       <div className="fixed top-24 md:top-8 inset-x-0 m-auto w-fit z-[60] flex flex-col items-end gap-3 pointer-events-none">
         {isUploading && isMinimized && !isUploadOpen && (
-          <ProcessingStatus 
+          <ProcessingStatus
             variant="floating"
             progress={processingProgress}
             onExpand={() => setIsMinimized(false)}
@@ -536,7 +535,7 @@ const App: React.FC = () => {
       </div>
 
       {isUploading && !isMinimized && (
-        <ProcessingModal 
+        <ProcessingModal
           isMinimized={isMinimized}
           isThinkingEnabled={isThinkingEnabled}
           step={processingStep}
@@ -547,16 +546,16 @@ const App: React.FC = () => {
       )}
 
       {isManualModalOpen && (
-        <ManualAssetModal 
+        <ManualAssetModal
           onAdd={(asset) => setAssets(prev => [...prev, asset])}
           onClose={() => setIsManualModalOpen(false)}
         />
       )}
 
       {errorMessage && (
-        <Toast 
-          message={errorMessage} 
-          onClose={() => setErrorMessage(null)} 
+        <Toast
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
           type="error"
         />
       )}
