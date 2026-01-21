@@ -1,6 +1,3 @@
-
-import React from 'react';
-
 export const BRUTALIST_THEME = {
   colors: {
     yellow: '#fcd34d', // amber-300
