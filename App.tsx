@@ -17,6 +17,7 @@ import { Icon } from './components/Icon';
 import { Toast } from './components/Toast';
 import { ManualAssetModal } from './components/ManualAssetModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
+import { saveCaseStudy, getCaseStudies } from './services/dbService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -47,6 +48,29 @@ const App: React.FC = () => {
   const cancelRef = useRef(false);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedStudies = await getCaseStudies();
+        if (savedStudies && savedStudies.length > 0) {
+           // Transform DB shape if necessary, assuming mostly match 
+           // We might need to map DB columns to CaseStudy type if names differ significantly
+           // But since we control both, we can align them.
+           // For now, let's keep local storage as a cache/fallback or remove it?
+           // The plan didn't explicitly remove local storage, but prioritizing DB is good.
+           // Let's just fetch from DB.
+           // Actually, getCaseStudies just returns the rows. We need to match the CaseStudy interface.
+           // Our dbService.ts getCaseStudies returns 'any[]' effectively because supabase types aren't fully strict here without deeper setup.
+           // Let's rely on basic mapping.
+           // For this step, I will just implement the SAVE functionality first as requested by the plan.
+           // Loading is a "nice to have" or part of "Verify Data Persistence".
+           // Let's stick to the immediate task: Implementing Client... "save".
+        }
+      } catch (e) {
+        console.error("Failed to load from DB", e);
+      }
+    };
+    // loadData(); // Uncomment to enable loading
+    
     const saved = localStorage.getItem('devsigner_data_v3');
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -203,6 +227,16 @@ const App: React.FC = () => {
       };
 
       setProcessingProgress(100);
+      
+      // Save draft to Supabase immediately
+      try {
+        await saveCaseStudy(fullStudy, assets);
+      } catch (e: any) {
+        console.error("Failed to auto-save draft", e);
+        // We don't block the UI flow for auto-save failure, but we log it
+        setErrorMessage(`Draft auto-save failed: ${e.message}`);
+      }
+
       setTimeout(() => {
         setCaseStudies(prev => [fullStudy, ...prev]);
         setAssets([]);
@@ -220,10 +254,26 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSaveStudy = (updatedStudy: CaseStudy) => {
-    setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
-    setSelectedArticle(updatedStudy);
-    setView('article');
+  const handleSaveStudy = async (updatedStudy: CaseStudy) => {
+    try {
+      setErrorMessage(null);
+      // Optimistic update
+      setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
+      setSelectedArticle(updatedStudy);
+      setView('article');
+      
+      // Save to Supabase
+      // We pass the assets that belong to this study. 
+      // In this app structure, 'assets' state seems to be a global "staging" area?
+      // Or 'updatedStudy.artifacts'? 
+      // The Type definition says CaseStudy has 'artifacts: Asset[]'.
+      await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
+      
+      // Show success toast? (Maybe later)
+    } catch (e: any) {
+      console.error("Failed to save to Supabase", e);
+      setErrorMessage(`Failed to save to database: ${e.message}`);
+    }
   };
 
   const cancelWorkflow = () => {
