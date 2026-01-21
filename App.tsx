@@ -17,6 +17,7 @@ import { Icon } from './components/Icon';
 import { Toast } from './components/Toast';
 import { ManualAssetModal } from './components/ManualAssetModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
+import { saveCaseStudy, getCaseStudies } from './services/dbService';
 import { DEMO_STUDIES, DEMO_ASSETS } from './utils/demoData';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -47,9 +48,68 @@ const App: React.FC = () => {
   const cancelRef = useRef(false);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedStudies = await getCaseStudies();
+        if (savedStudies && savedStudies.length > 0) {
+           const mappedStudies: CaseStudy[] = savedStudies.map((s: any) => ({
+             id: s.id,
+             title: s.title,
+             status: s.status,
+             date: s.created_at, // Map created_at to date
+             tags: s.tags || [],
+             problem: s.problem,
+             approach: s.approach,
+             outcome: s.outcome,
+             nextSteps: s.next_steps, // Map snake_case
+             seoMetadata: s.seo_metadata || { title: '', description: '', keywords: [] }, // Map snake_case
+             artifacts: (s.assets || []).map((a: any) => ({
+               id: a.id,
+               originalName: a.original_name, // Map snake_case
+               aiName: a.ai_name, // Map snake_case
+               type: a.type,
+               topic: a.topic,
+               context: a.context,
+               variant: a.variant,
+               version: a.version,
+               fileType: a.file_type, // Map snake_case
+               url: a.url,
+               size: a.size
+             }))
+           }));
+           
+           setCaseStudies(mappedStudies);
+        }
+      } catch (e) {
+        console.error("Failed to load from DB", e);
+        // Fallback to local storage if DB fails or is empty? 
+        // For now, let's allow the local storage block below to run if DB is empty or fails, 
+        // but typically we'd want DB to be the source of truth if connected.
+      }
+    };
+    
+    // Check if we have Supabase creds/connection before relying entirely?
+    // Since we are "integrated", let's try loading.
+    loadData();
+    
+    // We keep the local storage logic as a secondary check or for "offline" dev 
+    // if I wanted to merge them, but simplest is: "If DB has data, use it. Else check local."
+    // However, the current code structure below runs unconditionally.
+    // Let's modify it to only load local if state is empty?
+    // Or just run both and let React handle the updates (DB will usually be slower and overwrite local).
+    
     const saved = localStorage.getItem('devsigner_data_v3');
     if (saved) {
       const parsed = JSON.parse(saved);
+      // Only set if we haven't already loaded from DB (though DB is async...)
+      // The cleanest way is probably to let DB overwrite local if successful.
+      // So we leave this here, but maybe we should prefer DB.
+      // Actually, if we just want to see the DB data, we should probably ignore local storage 
+      // if we are fully switching to Supabase. 
+      // User said "I don't see my records".
+      
+      // Let's prevent local storage from overwriting if DB load is in progress?
+      // No, setCaseStudies from loadData will happen later (async) and will overwrite this initial sync set.
       setCaseStudies(parsed.caseStudies || []);
       setAssets(parsed.assets || []);
       if (parsed.preferences) {
@@ -203,6 +263,32 @@ const App: React.FC = () => {
       };
 
       setProcessingProgress(100);
+      
+      // Save draft to Supabase immediately
+      try {
+        const { caseStudy: savedStudy, assets: savedAssets } = await saveCaseStudy(fullStudy, assets);
+        // Update local study with real UUID from DB
+        fullStudy.id = savedStudy.id;
+        // Update artifacts with real URLs
+        fullStudy.artifacts = savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9),
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+        }));
+      } catch (e: any) {
+        console.error("Failed to auto-save draft", e);
+        // We don't block the UI flow for auto-save failure, but we log it
+        setErrorMessage(`Draft auto-save failed: ${e.message}`);
+      }
+
       setTimeout(() => {
         setCaseStudies(prev => [fullStudy, ...prev]);
         setAssets([]);
@@ -220,10 +306,110 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSaveStudy = (updatedStudy: CaseStudy) => {
-    setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
-    setSelectedArticle(updatedStudy);
-    setView('article');
+  const handleSaveStudy = async (updatedStudy: CaseStudy) => {
+    try {
+      setErrorMessage(null);
+      // Optimistic update
+      setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? updatedStudy : s));
+      setSelectedArticle(updatedStudy);
+      setView('article');
+      
+      // Save to Supabase
+      // We pass the assets that belong to this study. 
+      // In this app structure, 'assets' state seems to be a global "staging" area?
+      // Or 'updatedStudy.artifacts'? 
+      // The Type definition says CaseStudy has 'artifacts: Asset[]'.
+      const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
+      
+      // Update local state with real ID if it changed (e.g. first save of a draft)
+      if (savedRecord.id !== updatedStudy.id) {
+         const finalStudy = { 
+           ...updatedStudy, 
+           id: savedRecord.id,
+           // Update artifacts with the ones returned from DB (containing new URLs)
+           artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9), // DB doesn't return ID immediately in our insert map, but that's ok for now
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+           }))
+         };
+         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+         setSelectedArticle(finalStudy);
+      } else {
+        // Even if ID didn't change, URLs might have (blob -> storage)
+        // We should update the study in place
+         const finalStudy = { 
+           ...updatedStudy, 
+           artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9), 
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+           }))
+         };
+         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+         setSelectedArticle(finalStudy);
+      }
+      
+      // Show success toast? (Maybe later)
+    } catch (e: any) {
+      console.error("Failed to save to Supabase", e);
+      setErrorMessage(`Failed to save to database: ${e.message}`);
+    }
+  };
+
+  const handlePublishStudy = async (study: CaseStudy) => {
+    try {
+      const publishedStudy = { ...study, status: 'published' as const };
+      
+      // Optimistic update
+      setCaseStudies(prev => prev.map(s => s.id === study.id ? publishedStudy : s));
+      setSelectedArticle(publishedStudy);
+      
+      const { caseStudy: savedRecord, assets: savedAssets } = await saveCaseStudy(publishedStudy, study.artifacts);
+      
+      // Update local state with real ID
+      const finalStudy = { 
+        ...publishedStudy, 
+        id: savedRecord.id,
+        artifacts: savedAssets.map((a: any) => ({
+             id: Math.random().toString(36).substr(2, 9),
+             originalName: a.original_name,
+             aiName: a.ai_name,
+             type: a.type,
+             topic: a.topic,
+             context: a.context,
+             variant: a.variant,
+             version: a.version,
+             fileType: a.file_type,
+             url: a.url,
+             size: a.size
+        }))
+      };
+      
+      setCaseStudies(prev => prev.map(s => s.id === study.id ? finalStudy : s));
+      setSelectedArticle(finalStudy);
+
+      // Optional: Show success toast
+    } catch (e: any) {
+      console.error("Failed to publish study", e);
+      setErrorMessage(`Failed to publish: ${e.message}`);
+    }
   };
 
   const cancelWorkflow = () => {
@@ -289,6 +475,7 @@ const App: React.FC = () => {
                   study={selectedArticle} 
                   onBack={() => setView('timeline')} 
                   onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
+                  onPublish={handlePublishStudy}
                 />
               )}
 

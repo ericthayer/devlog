@@ -3,11 +3,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Asset, CaseStudy } from "../types";
 
 // Note: GoogleGenAI client is initialized inside each function call 
-// to ensure the latest API key is always used from process.env.API_KEY.
+// to ensure the latest API key is always used from import.meta.env.VITE_API_KEY.
 
 export const analyzeAsset = async (file: File, mimeType: string, useThinking: boolean = false): Promise<Partial<Asset>> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
     
     const reader = new FileReader();
     const base64Data = await new Promise<string>((resolve, reject) => {
@@ -16,7 +16,7 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
       reader.readAsDataURL(file);
     });
 
-    const modelName = useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+    const modelName = useThinking ? 'gemini-2.5-flash' : 'gemini-2.0-flash';
     
     // Guidelines: Flash thinking budget max is 24576, Pro is 32768.
     // Guidelines: MUST set maxOutputTokens when setting thinkingBudget.
@@ -70,14 +70,14 @@ export const analyzeAsset = async (file: File, mimeType: string, useThinking: bo
 
 export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, useThinking: boolean = true): Promise<Partial<CaseStudy>> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
     
     const assetInfo = assets.map(a => `- ${a.aiName} (${a.topic}, ${a.context})`).join('\n');
     
     // Using gemini-3-pro-preview for complex synthesis tasks.
     // Pairing thinkingBudget with maxOutputTokens to prevent 500 Internal Errors.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.5-flash',
       contents: {
         parts: [
           {
@@ -143,9 +143,9 @@ export const generateCaseStudy = async (assets: Asset[], contextPrompt: string, 
     // Fallback: If Pro/Thinking fails with 500, try Flash without thinking for robustness
     if (useThinking) {
       console.warn("Retrying synthesis with Flash fallback...");
-      const aiFallback = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const aiFallback = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
       const fallbackResponse = await aiFallback.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.0-flash',
         contents: `Based on these design artifacts:\n${assets.map(a => a.aiName).join(', ')}\n\nCreate a case study JSON with title, problem, approach, outcome, nextSteps, tags, and seoMetadata (title, description, keywords).`,
         config: { responseMimeType: 'application/json' }
       });
