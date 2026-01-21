@@ -230,7 +230,9 @@ const App: React.FC = () => {
       
       // Save draft to Supabase immediately
       try {
-        await saveCaseStudy(fullStudy, assets);
+        const { caseStudy: savedStudy } = await saveCaseStudy(fullStudy, assets);
+        // Update local study with real UUID from DB
+        fullStudy.id = savedStudy.id;
       } catch (e: any) {
         console.error("Failed to auto-save draft", e);
         // We don't block the UI flow for auto-save failure, but we log it
@@ -267,12 +269,43 @@ const App: React.FC = () => {
       // In this app structure, 'assets' state seems to be a global "staging" area?
       // Or 'updatedStudy.artifacts'? 
       // The Type definition says CaseStudy has 'artifacts: Asset[]'.
-      await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
+      const { caseStudy: savedRecord } = await saveCaseStudy(updatedStudy, updatedStudy.artifacts);
+      
+      // Update local state with real ID if it changed (e.g. first save of a draft)
+      if (savedRecord.id !== updatedStudy.id) {
+         const finalStudy = { ...updatedStudy, id: savedRecord.id };
+         setCaseStudies(prev => prev.map(s => s.id === updatedStudy.id ? finalStudy : s));
+         setSelectedArticle(finalStudy);
+      }
       
       // Show success toast? (Maybe later)
     } catch (e: any) {
       console.error("Failed to save to Supabase", e);
       setErrorMessage(`Failed to save to database: ${e.message}`);
+    }
+  };
+
+  const handlePublishStudy = async (study: CaseStudy) => {
+    try {
+      const publishedStudy = { ...study, status: 'published' as const };
+      
+      // Optimistic update
+      setCaseStudies(prev => prev.map(s => s.id === study.id ? publishedStudy : s));
+      setSelectedArticle(publishedStudy);
+      
+      const { caseStudy: savedRecord } = await saveCaseStudy(publishedStudy, study.artifacts);
+      
+      // Update local state with real ID
+      if (savedRecord.id !== study.id) {
+        const finalStudy = { ...publishedStudy, id: savedRecord.id };
+        setCaseStudies(prev => prev.map(s => s.id === study.id ? finalStudy : s));
+        setSelectedArticle(finalStudy);
+      }
+
+      // Optional: Show success toast
+    } catch (e: any) {
+      console.error("Failed to publish study", e);
+      setErrorMessage(`Failed to publish: ${e.message}`);
     }
   };
 
@@ -339,6 +372,7 @@ const App: React.FC = () => {
                   study={selectedArticle} 
                   onBack={() => setView('timeline')} 
                   onEdit={(study) => { setSelectedArticle(study); setView('editor'); }}
+                  onPublish={handlePublishStudy}
                 />
               )}
 
