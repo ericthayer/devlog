@@ -50,19 +50,7 @@ Analyze the last git commit and create a comprehensive PR description.
    ```
 
 4. **Create the Pull Request:**
-   - Use `mcp_github_create_pull_request` with:
-     - owner: `ericthayer`
-     - repo: `devlog`
-     - title: [Commit message or descriptive title]
-     - head: [Current branch name]
-     - base: `main`
-     - body: [Formatted description from step 3]
-     - draft: `false` (set to `true` if WIP)
-
-## Alternative: Use GitHub CLI Directly
-
-For faster PR creation without mcp_github tools:
-
+  
 ```bash
 # Get current branch
 BRANCH=$(git branch --show-current)
