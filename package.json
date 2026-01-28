@@ -1,7 +1,26 @@
 {
-  "name": "devsigner-log---brutalist-case-study-engine",
-  "private": true,
+  "name": "devlog",
+  "private": false,
   "version": "0.0.0",
+  "description": "A React + TypeScript application for generating UX/Front-end case studies from design artifacts using AI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ericthayer/devlog.git"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "case-study",
+    "gemini-ai",
+    "supabase",
+    "design-documentation"
+  ],
+  "author": "Eric Thayer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ericthayer/devlog/issues"
+  },
+  "homepage": "https://github.com/ericthayer/devlog#readme",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +28,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "@google/genai": "^1.37.0",
@@ -20,6 +40,11 @@
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
@@ -34,6 +59,7 @@
     "dotenv": "^17.2.3",
     "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
+    "semantic-release": "^24.2.9",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
