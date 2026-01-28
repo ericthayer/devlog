@@ -3,6 +3,7 @@ import React from 'react';
 import { Icon } from './Icon';
 import { BrutalistButton } from './BrutalistButton';
 import { AppView } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AppHeaderProps {
   activeView: AppView;
@@ -23,6 +24,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleSettings,
   onBack
 }) => {
+  const { user, signOut } = useAuth();
+
   const getViewTitle = () => {
     switch (activeView) {
       case 'timeline': return 'Dev_Timeline';
@@ -59,6 +62,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
 
       <div className="flex gap-3 md:gap-4 items-center">
+        {user && (
+          <div className="hidden md:flex items-center gap-2 bg-black text-amber-300 px-3 py-2 brutalist-border">
+            <span className="mono text-xs font-bold">{user.role.toUpperCase()}</span>
+            <span className="text-white">•</span>
+            <span className="mono text-xs">{user.email}</span>
+          </div>
+        )}
+
+        <BrutalistButton
+          variant="secondary"
+          onClick={signOut}
+          title="Sign Out"
+          className="text-sm py-2 px-4 hover:bg-red-600 hover:text-white transition-colors"
+        >
+          <Icon name="LogOut" size={20} />
+        </BrutalistButton>
+
         <BrutalistButton
           variant={isSettingsOpen ? 'primary' : 'secondary'}
           onClick={onToggleSettings}
