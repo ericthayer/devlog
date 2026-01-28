@@ -7,6 +7,11 @@ Enables rapid prototyping and design collaboration with AI-powered assistance wh
 **DESCRIPTION:**
 Use these instructions when building React applications in TypeScript that integrate with Google Gemini APIs, independent of specific UI frameworks.
 
+**QUICK START:**
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow and standards
+- See [.github/README.md](.github/README.md) for AI guidance system documentation
+- See [.github/GITHUB_AUTH_SETUP.md](.github/GITHUB_AUTH_SETUP.md) for GitHub authentication setup
+
 **INSTRUCTIONS:**
 Create responsive, accessible React applications with TypeScript using strict configuration and Gemini API integration.
 
@@ -19,6 +24,10 @@ Create responsive, accessible React applications with TypeScript using strict co
 - DO NOT make changes outside the scope of the requested feature, i.e., don't modify the main navigation when asked to build a data table.
 
 - ALWAYS break out code into reusable components ready for export via ES module
+
+- ALWAYS follow the [Component Architecture](.github/rules/component-architecture.md) folder-per-component pattern
+
+- ALWAYS create SPEC.md before coding new features (see [Spec-Driven Development](.github/rules/spec-driven-development.md))
 
 Include the following specifications:
 
@@ -121,3 +130,50 @@ Include the following specifications:
     - Test error scenarios and API failures
 
 17. **Web Standards Compliance**: Follow all guidelines in [Web Interface Guidelines](.github/instructions/web-interface-guidelines.instructions.md) for forms, focus, animations, content handling, hydration, and copy.
+
+## Development Workflow
+
+### Creating Pull Requests
+
+**Using GitHub CLI (Recommended):**
+```bash
+# Ensure you're authenticated
+gh auth status
+
+# Create PR from current branch
+gh pr create --base main --head $(git branch --show-current)
+
+# Or with template
+gh pr create \
+  --title "$(git log -1 --pretty=format:'%s')" \
+  --body "$(cat .github/pr-template-commits.md)" \
+  --base main
+```
+
+See [.github/GITHUB_AUTH_SETUP.md](.github/GITHUB_AUTH_SETUP.md) for setup instructions.
+
+**Using Prompts:**
+Use [.github/prompts/create-pr.prompt.md](.github/prompts/create-pr.prompt.md) to analyze commits and generate PR descriptions automatically.
+
+### Referencing Guidance Files
+
+When working with AI assistants, reference specific guidance files:
+
+```
+# Before creating a component
+Read .github/rules/component-architecture.md
+Read .github/instructions/web-interface-guidelines.instructions.md
+
+# For performance optimization
+Read .github/skills/vercel-react-best-practices/SKILL.md
+
+# For accessibility
+Read .github/skills/accessibility_audit/SKILL.md
+```
+
+## Additional Resources
+
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Complete architecture guide
+- **[.github/README.md](.github/README.md)** - AI guidance system overview
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment instructions
+- **[README.md](README.md)** - Project setup and overview

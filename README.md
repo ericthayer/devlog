@@ -10,6 +10,24 @@ Supports two user roles:
 - **Publisher**: Full access to create, edit, and delete case studies
 - **Reader**: View published case studies only
 
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development workflow and branch strategy
+- Code standards and testing requirements
+- Pull request process
+- AI guidance system overview
+
+## AI Guidance System
+
+DevLog includes a comprehensive AI development framework in [.github/](.github/README.md) with three layers:
+
+1. **Instructions** - Scope-specific guidelines (TypeScript standards, UI requirements, accessibility)
+2. **Rules** - Architectural principles (component structure, SDD, Supabase patterns)
+3. **Skills** - Executable workflows (scaffolding, audits, performance best practices)
+
+This system helps maintain consistency and quality across the codebase. See [.github/README.md](.github/README.md) for details.
+
 ## Tech Stack
 
 - **Frontend**: React 19 + TypeScript + Vite
@@ -194,8 +212,20 @@ devlog/
 ├── supabase/
 │   └── migrations/       # SQL migrations
 │       └── 001_auth_and_rls.sql
+├── .github/              # AI guidance system
+│   ├── instructions/     # Scope-specific guidelines
+│   ├── rules/           # Architectural principles
+│   └── skills/          # Executable workflows
+├── CONTRIBUTING.md       # Developer guide
 ├── DEPLOYMENT.md         # Deployment guide
 └── README.md             # This file
 ```
 
 See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed architecture documentation.
+
+## Resources
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide (Vercel, Netlify, Supabase)
+- **[.github/README.md](.github/README.md)** - AI guidance system documentation
+- **[AGENTS.md](AGENTS.md)** - AI agent development guidelines
