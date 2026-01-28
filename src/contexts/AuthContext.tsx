@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../utils/supabase';
+import { supabase, isSupabaseConfigured } from '../utils/supabase';
 import { User, UserRole } from '../types';
 
 interface AuthContextType {
@@ -22,23 +22,28 @@ export const useAuth = () => {
 };
 
 const getUserRole = async (userId: string): Promise<UserRole> => {
-  const { data, error } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .single();
+  if (!isSupabaseConfigured) return 'publisher';
   
-  if (error || !data) {
-    // If no role exists (OAuth first-time login), create reader role
-    await supabase.from('user_roles').insert({
-      user_id: userId,
-      role: 'reader',
-      publisher_requested: false
-    });
-    return 'reader';
+  try {
+    // Use RPC function to bypass PostgREST schema cache issues
+    // Add a 2-second timeout as safety net
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 2000)
+    );
+    
+    const rpcPromise = supabase.rpc('get_user_role', { p_user_id: userId });
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+    
+    if (error) {
+      console.warn('Could not fetch user role, defaulting to reader:', error.message);
+      return 'reader'; // Conservative default - readers have limited access
+    }
+    
+    return (data as UserRole) || 'reader';
+  } catch (err) {
+    console.warn('Error fetching user role, defaulting to reader');
+    return 'reader'; // Conservative default on timeout/error
   }
-  
-  return data.role as UserRole;
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -46,32 +51,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const role = await getUserRole(session.user.id);
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          role
-        });
-      }
+    // Skip auth if Supabase is not configured (development mode)
+    if (!isSupabaseConfigured) {
+      // Set a mock user for development
+      setUser({
+        id: 'dev-user',
+        email: 'dev@localhost',
+        role: 'publisher'
+      });
       setLoading(false);
-    });
+      return;
+    }
+
+    // Check active session
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          setLoading(false);
+          return;
+        }
+        
+        if (session?.user) {
+          const role = await getUserRole(session.user.id);
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            role
+          });
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const role = await getUserRole(session.user.id);
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          role
-        });
-      } else {
+      try {
+        if (session?.user) {
+          const role = await getUserRole(session.user.id);
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            role
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Auth state change error:', err);
         setUser(null);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

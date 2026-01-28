@@ -1,4 +1,4 @@
-import { supabase } from '../utils/supabase';
+import { supabase, isSupabaseConfigured } from '../utils/supabase';
 import { Asset, CaseStudy } from '../types';
 
 // Helper to check if string is UUID
@@ -8,6 +8,11 @@ const isUUID = (str: string) => {
 };
 
 export const saveCaseStudy = async (caseStudy: Partial<CaseStudy>, assets: Asset[]) => {
+  if (!isSupabaseConfigured) {
+    console.warn('Supabase not configured, skipping DB save');
+    return;
+  }
+  
   let caseStudyId = caseStudy.id;
   
   // Prepare payload
@@ -113,6 +118,11 @@ export const saveCaseStudy = async (caseStudy: Partial<CaseStudy>, assets: Asset
 };
 
 export const getCaseStudies = async () => {
+  if (!isSupabaseConfigured) {
+    console.warn('Supabase not configured, returning empty array');
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from('case_studies')
     .select('*, assets(*)')
