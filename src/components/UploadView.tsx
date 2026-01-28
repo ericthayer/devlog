@@ -11,6 +11,7 @@ interface UploadViewProps {
   isUploading: boolean;
   progress: number;
   isThinkingEnabled: boolean;
+  canEdit: boolean;
   onToggleThinking: () => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAsset: (id: string) => void;
@@ -27,6 +28,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
   isUploading,
   progress,
   isThinkingEnabled,
+  canEdit,
   onToggleThinking,
   onFileUpload,
   onRemoveAsset,
@@ -186,7 +188,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
         )}
       </div>
 
-      {assets.length > 0 ? (
+      {assets.length > 0 && canEdit ? (
         <div className="p-6 border-t-4 border-black bg-white sticky bottom-0">
           <BrutalistButton 
             fullWidth 
@@ -197,6 +199,13 @@ export const UploadView: React.FC<UploadViewProps> = ({
             <Icon name="Zap" size={24} className={isUploading ? 'animate-pulse' : ''} />
             {isUploading ? 'BUILDING...' : 'GENERATE_LOG'}
           </BrutalistButton>
+        </div>
+      ) : !canEdit && assets.length > 0 ? (
+        <div className="p-6 border-t-4 border-black bg-white mt-auto">
+          <div className="flex items-center gap-3 justify-center text-red-600">
+            <Icon name="Lock" size={16} />
+            <span className="mono text-[10px] font-black uppercase">READ-ONLY ACCESS</span>
+          </div>
         </div>
       ) : (
         <div className="p-6 border-t-4 border-black bg-white mt-auto">

@@ -1,5 +1,13 @@
 
-export type AppView = 'timeline' | 'upload' | 'editor' | 'settings' | 'article';
+export type AppView = 'timeline' | 'upload' | 'editor' | 'settings' | 'article' | 'login';
+
+export type UserRole = 'publisher' | 'reader';
+
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+}
 
 export interface Asset {
   id: string;

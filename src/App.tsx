@@ -9,6 +9,7 @@ import { UploadView } from './components/UploadView';
 import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
+import { LoginView } from './components/LoginView';
 import { ProcessingModal } from './components/ProcessingModal';
 import { ProcessingStatus } from './components/ProcessingStatus';
 import { SystemHud } from './components/SystemHud';
@@ -17,6 +18,7 @@ import { ManualAssetModal } from './components/ManualAssetModal';
 import { analyzeAsset, generateCaseStudy } from './services/geminiService';
 import { saveCaseStudy, getCaseStudies } from './services/dbService';
 import { DEMO_STUDIES } from './utils/demoData';
+import { useAuth } from './contexts/AuthContext';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   theme: 'light',
@@ -27,6 +29,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 const SUPPORTED_UNPACK_EXTENSIONS = ['md', 'js', 'jsx', 'ts', 'tsx', 'css', 'html', 'json', 'txt', 'py', 'go', 'rs', 'svg', 'fig', 'sql'];
 
 const App: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
   const [view, setView] = useState<AppView>('timeline');
   const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -434,6 +437,22 @@ const App: React.FC = () => {
     setAssets([]);
   };
 
+  // Show login if not authenticated
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#F9F9F9]">
+        <div className="text-2xl font-black mono">LOADING...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginView />;
+  }
+
+  // Check permissions for create/edit operations
+  const canEdit = user.role === 'publisher';
+
   return (
     <div className={`h-screen flex flex-col md:flex-row bg-[#F9F9F9] selection:bg-amber-300 selection:text-black ${preferences.theme === 'dark' ? 'dark-mode-sim' : ''}`}>
 
@@ -492,6 +511,7 @@ const App: React.FC = () => {
                 isUploading={isUploading}
                 progress={processingProgress}
                 isThinkingEnabled={isThinkingEnabled}
+                canEdit={canEdit}
                 onToggleThinking={() => setIsThinkingEnabled(!isThinkingEnabled)}
                 onFileUpload={handleFileUpload}
                 onRemoveAsset={(id) => setAssets(assets.filter(a => a.id !== id))}
