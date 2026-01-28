@@ -1,17 +1,25 @@
 
 import React from 'react';
 import { Icon } from './Icon';
-import { AppView } from '../types';
+import { AppView, UserRole } from '../types';
 
 interface NavigationProps {
   activeView: AppView;
   onViewChange: (view: AppView) => void;
+  userRole?: UserRole | null;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
-  const navItems: { id: AppView; icon: any; label: string }[] = [
+export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, userRole }) => {
+  const navItems: { id: AppView; icon: any; label: string; requiresRole?: UserRole }[] = [
     { id: 'timeline', icon: 'LayoutList', label: 'Feed' },
+    { id: 'user-management', icon: 'Users', label: 'Users', requiresRole: 'super_admin' },
   ];
+
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.requiresRole) return true;
+    return userRole === item.requiresRole;
+  });
 
   return (
     <>
@@ -23,7 +31,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           </h1>
         </div>
         <div className="flex flex-col gap-4">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}

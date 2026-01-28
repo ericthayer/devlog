@@ -1,7 +1,7 @@
 
-export type AppView = 'timeline' | 'upload' | 'editor' | 'settings' | 'article' | 'login';
+export type AppView = 'timeline' | 'upload' | 'editor' | 'settings' | 'article' | 'login' | 'user-management';
 
-export type UserRole = 'publisher' | 'reader';
+export type UserRole = 'super_admin' | 'publisher' | 'reader';
 
 export interface User {
   id: string;

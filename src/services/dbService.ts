@@ -131,3 +131,90 @@ export const getCaseStudies = async () => {
   if (error) throw error;
   return data;
 };
+
+// User Management Functions (Super Admin only)
+export const getAllUsers = async () => {
+  if (!isSupabaseConfigured) {
+    console.warn('Supabase not configured, returning empty array');
+    return [];
+  }
+
+  try {
+    // Use RPC function with timeout workaround
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out. The server may be slow to respond.')), 3000)
+    );
+
+    const rpcPromise = supabase.rpc('get_all_users_with_emails');
+
+    console.log('[getAllUsers] Calling RPC function with 3s timeout');
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]) as Awaited<typeof rpcPromise>;
+
+    if (error) {
+      console.error('[getAllUsers] RPC error:', error);
+      // Re-throw with the original Supabase error for better error messages
+      const errorObj = new Error(error.message || 'Failed to fetch users');
+      (errorObj as any).code = error.code;
+      (errorObj as any).details = error.details;
+      (errorObj as any).hint = error.hint;
+      throw errorObj;
+    }
+
+    console.log('[getAllUsers] RPC success:', data);
+    return data || [];
+  } catch (err: any) {
+    console.error('[getAllUsers] Failed:', err.message, err);
+    throw err;
+  }
+};
+
+export const updateUserRole = async (userId: string, newRole: string) => {
+  if (!isSupabaseConfigured) {
+    console.warn('Supabase not configured, skipping role update');
+    return;
+  }
+
+  try {
+    // Add timeout workaround
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Query timeout')), 3000)
+    );
+
+    const rpcPromise = supabase.rpc('update_user_role', {
+      p_user_id: userId,
+      p_new_role: newRole
+    });
+    
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+    if (error) throw error;
+    return data;
+  } catch (err: any) {
+    // Fallback: Direct table update
+    console.warn('RPC failed, falling back to direct update:', err.message);
+    
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({
+        user_id: userId,
+        role: newRole,
+        publisher_requested: false
+      });
+    
+    if (error) throw error;
+  }
+};
+
+export const deleteUser = async (userId: string) => {
+  if (!isSupabaseConfigured) {
+    console.warn('Supabase not configured, skipping user deletion');
+    return;
+  }
+
+  // Delete the user role record
+  const { error } = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId);
+
+  if (error) throw error;
+};

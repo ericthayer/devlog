@@ -25,30 +25,39 @@ const getUserRole = async (userId: string): Promise<UserRole> => {
   if (!isSupabaseConfigured) return 'publisher';
   
   try {
-    // Use RPC function to bypass PostgREST schema cache issues
-    // Add a 2-second timeout as safety net
-    const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error('Timeout')), 2000)
+    console.log('[getUserRole] Starting query for:', userId);
+    
+    // WORKAROUND: Add 3-second timeout since Supabase queries hang in browser
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Query timeout')), 3000)
     );
     
-    const rpcPromise = supabase.rpc('get_user_role', { p_user_id: userId });
-    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+    const queryPromise = supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    console.log('[getUserRole] Query created, awaiting with timeout...');
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+    console.log('[getUserRole] Query complete:', { data, error });
     
     if (error) {
-      console.warn('Could not fetch user role, defaulting to reader:', error.message);
-      return 'reader'; // Conservative default - readers have limited access
+      console.warn('Could not fetch user role, defaulting to publisher:', error.message);
+      return 'publisher'; // Default to publisher for development
     }
     
-    return (data as UserRole) || 'reader';
-  } catch (err) {
-    console.warn('Error fetching user role, defaulting to reader');
-    return 'reader'; // Conservative default on timeout/error
+    return (data?.role as UserRole) || 'publisher';
+  } catch (err: any) {
+    console.warn('Error fetching user role, defaulting to publisher:', err.message);
+    return 'publisher'; // Default to publisher on timeout/error
   }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
   useEffect(() => {
     // Skip auth if Supabase is not configured (development mode)
@@ -63,50 +72,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Check active session
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session error:', error);
-          setLoading(false);
-          return;
-        }
-        
-        if (session?.user) {
-          const role = await getUserRole(session.user.id);
-          setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            role
-          });
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    initAuth();
-
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AUTH] State change:', event, !!session);
       try {
         if (session?.user) {
+          console.log('[AUTH] Fetching role for user:', session.user.id);
           const role = await getUserRole(session.user.id);
+          console.log('[AUTH] Got role:', role);
           setUser({
             id: session.user.id,
             email: session.user.email!,
             role
           });
+          console.log('[AUTH] User set successfully');
         } else {
+          console.log('[AUTH] No session, clearing user');
           setUser(null);
         }
       } catch (err) {
         console.error('Auth state change error:', err);
         setUser(null);
+      } finally {
+        // Mark initial check as done after first auth state change
+        if (!initialCheckDone) {
+          setInitialCheckDone(true);
+          setLoading(false);
+        }
       }
     });
 

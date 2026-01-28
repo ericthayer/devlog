@@ -7,7 +7,18 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = hasSupabaseConfig
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'devlog-app'
+        }
+      }
+    })
   : null as any; // Type assertion for development without Supabase
 
 export const isSupabaseConfigured = hasSupabaseConfig;

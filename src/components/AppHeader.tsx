@@ -13,6 +13,7 @@ interface AppHeaderProps {
   onToggleUpload: () => void;
   onToggleSettings: () => void;
   onBack?: () => void;
+  onNavigateToUserManagement?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -22,7 +23,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   hasAssets,
   onToggleUpload,
   onToggleSettings,
-  onBack
+  onBack,
+  onNavigateToUserManagement
 }) => {
   const { user, signOut } = useAuth();
 
@@ -31,6 +33,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       case 'timeline': return 'Dev_Timeline';
       case 'article': return 'Contribution_Detail';
       case 'editor': return 'Editor_Core';
+      case 'user-management': return 'User_Management';
       default: return 'System_Node';
     }
   };
@@ -68,6 +71,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <span className="text-white">•</span>
             <span className="mono text-xs">{user.email}</span>
           </div>
+        )}
+
+        {user?.role === 'super_admin' && onNavigateToUserManagement && (
+          <BrutalistButton
+            variant={activeView === 'user-management' ? 'primary' : 'secondary'}
+            onClick={onNavigateToUserManagement}
+            title="User Management"
+            className={`text-sm py-2 px-6 hover:brutalist-shadow-active hover:-translate-y-1 transition-all brutalist-shadow-sm ${activeView === 'user-management' ? 'bg-amber-300' : ''}`}
+          >
+            <Icon name="Users" size={24} />
+          </BrutalistButton>
         )}
 
         <BrutalistButton

@@ -10,6 +10,7 @@ import { ArticleView } from './components/ArticleView';
 import { SettingsView } from './components/SettingsView';
 import { EditorView } from './components/EditorView';
 import { LoginView } from './components/LoginView';
+import { UserManagementView } from './components/UserManagementView';
 import { ProcessingModal } from './components/ProcessingModal';
 import { ProcessingStatus } from './components/ProcessingStatus';
 import { SystemHud } from './components/SystemHud';
@@ -464,7 +465,8 @@ const App: React.FC = () => {
           hasAssets={assets.length > 0}
           onToggleUpload={toggleUpload}
           onToggleSettings={toggleSettings}
-          onBack={view === 'article' || view === 'editor' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
+          onBack={view === 'article' || view === 'editor' || view === 'user-management' ? () => { setView('timeline'); setSelectedArticle(null); } : undefined}
+          onNavigateToUserManagement={() => setView('user-management')}
         />
 
         <div className="flex-1 flex flex-row overflow-hidden h-dvh relative">
@@ -493,6 +495,10 @@ const App: React.FC = () => {
                   onSave={handleSaveStudy}
                   onCancel={() => setView('article')}
                 />
+              )}
+
+              {view === 'user-management' && (
+                <UserManagementView canEdit={user.role === 'super_admin'} />
               )}
 
               <div className={`flex flex-col sm:flex-row gap-4 p-4 md:p-12 justify-between mt-auto" ${view === 'article' ? 'bg-white' : ''}`}>
