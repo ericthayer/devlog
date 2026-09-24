@@ -1,6 +1,6 @@
 # DevLog - Brutalist Case Study Engine
 
-A React + TypeScript application for generating UX/FE case studies from design artifacts using AI. Features a brutalist UI aesthetic with a distinctive yellow/black theme and role-based authentication.
+A React + TypeScript application for generating UX/Front-end case studies from design artifacts using AI. Features a brutalist UI aesthetic with a distinctive yellow/black theme and role-based authentication.
 
 ## Purpose
 
