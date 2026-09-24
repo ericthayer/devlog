@@ -120,6 +120,18 @@ npm run test:ui      # Interactive test UI
 npm run test:coverage # Test coverage report
 ```
 
+## Releases
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and releases. Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+- `feat:` - New features (minor version bump)
+- `fix:` - Bug fixes (patch version bump)
+- `perf:` - Performance improvements (patch version bump)
+- `docs:` - Documentation updates (patch version bump)
+- `BREAKING CHANGE:` - Breaking changes (major version bump)
+
+See [RELEASES.md](RELEASES.md) for complete release documentation.
+
 ## Testing
 
 Tests are written using Vitest and React Testing Library.
@@ -215,9 +227,11 @@ devlog/
 ├── .github/              # AI guidance system
 │   ├── instructions/     # Scope-specific guidelines
 │   ├── rules/           # Architectural principles
-│   └── skills/          # Executable workflows
+│   ├── skills/          # Executable workflows
+│   └── workflows/       # GitHub Actions
 ├── CONTRIBUTING.md       # Developer guide
 ├── DEPLOYMENT.md         # Deployment guide
+├── RELEASES.md           # Release process documentation
 └── README.md             # This file
 ```
 
@@ -227,5 +241,6 @@ See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detai
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide (Vercel, Netlify, Supabase)
+- **[RELEASES.md](RELEASES.md)** - Release process and versioning
 - **[.github/README.md](.github/README.md)** - AI guidance system documentation
 - **[AGENTS.md](AGENTS.md)** - AI agent development guidelines

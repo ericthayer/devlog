@@ -280,14 +280,25 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Types
 
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation changes
-- `refactor:` - Code refactoring (no functional changes)
-- `test:` - Adding or updating tests
-- `perf:` - Performance improvements
-- `build:` - Build system or dependencies
-- `ci:` - CI configuration changes
+- `feat:` - New feature (triggers **minor** version bump)
+- `fix:` - Bug fix (triggers **patch** version bump)
+- `docs:` - Documentation changes (triggers **patch** version bump)
+- `refactor:` - Code refactoring (triggers **patch** version bump)
+- `test:` - Adding or updating tests (no version bump)
+- `perf:` - Performance improvements (triggers **patch** version bump)
+- `build:` - Build system or dependencies (triggers **patch** version bump)
+- `ci:` - CI configuration changes (no version bump)
+- `chore:` - Maintenance tasks (no version bump)
+
+### Breaking Changes
+
+To trigger a **major** version bump, include `BREAKING CHANGE:` in the commit footer or use `!`:
+
+```bash
+feat(api)!: redesign authentication flow
+
+BREAKING CHANGE: The signIn method now requires a role parameter.
+```
 
 ### Examples
 
@@ -299,7 +310,21 @@ fix(upload): resolve file size calculation error
 docs(readme): update Supabase setup instructions
 
 refactor(components): move all files to src/ directory
+
+perf(gemini): implement response caching to reduce API calls
 ```
+
+## Releases
+
+This project uses automated releases via semantic-release. When commits are merged to `main`:
+
+1. Commit messages are analyzed
+2. Version is automatically bumped based on commit types
+3. CHANGELOG.md is updated
+4. GitHub release is created
+5. Related PRs/issues are commented with release info
+
+See [RELEASES.md](RELEASES.md) for complete release documentation.
 
 ## Need Help?
 
